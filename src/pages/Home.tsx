@@ -3,6 +3,7 @@ import Hero from '../components/Hero'
 import ProgramSection from '../components/ProgramSection'
 import WeeksSection from '../components/WeeksSection'
 import AboutSection from '../components/AboutSection'
+import TestimonialsSection from '../components/TestimonialsSection'
 import Footer from '../components/Footer'
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
       <ProgramSection />
       <WeeksSection />
       <AboutSection />
+      <TestimonialsSection />
       <Footer />
     </div>
   )

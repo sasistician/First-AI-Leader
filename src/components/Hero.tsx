@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react'
-import { ArrowRight } from 'lucide-react'
 
 const FADE_MS = 500
 const HERO_VIDEO_URL =
@@ -97,29 +96,6 @@ export default function Hero() {
         </h1>
 
         <div className="max-w-xl w-full space-y-4">
-          <form
-            className="liquid-glass rounded-full pl-6 pr-2 py-2 flex items-center gap-3"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 bg-transparent outline-none text-white placeholder:text-white/40 text-base"
-            />
-            <button
-              type="submit"
-              aria-label="Submit email"
-              className="bg-white rounded-full p-3 text-black"
-            >
-              <ArrowRight size={20} />
-            </button>
-          </form>
-
-          <p className="text-white text-sm leading-relaxed px-4">
-            Stay updated with the latest news and insights. Subscribe to our newsletter today
-            and never miss out on exciting updates.
-          </p>
-
           <button
             onClick={() => scrollToSection('program')}
             className="liquid-glass rounded-full px-8 py-3 text-white text-sm font-medium hover:bg-white/5 transition-colors"

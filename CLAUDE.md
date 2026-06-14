@@ -25,17 +25,17 @@ src/
 │   ├── Nav.tsx            sticky liquid-glass nav, scroll-anchor links + Register button
 │   ├── Hero.tsx            full-screen video hero with custom fade loop + email signup
 │   ├── ProgramSection.tsx  #program — 5-week curriculum cards
-│   ├── WeeksSection.tsx    #weeks — links to /weeks/wN.html session decks
+│   ├── WeeksSection.tsx    #weeks — links to /weeks/wN_english.html / wN_mandarin.html decks
 │   ├── AboutSection.tsx    #about — course description
-│   └── Footer.tsx           social icons incl. GitHub
+│   └── Footer.tsx           social icons: GitHub, email, LinkedIn
 ├── pages/
 │   ├── Home.tsx     composes all homepage sections
-│   └── Register.tsx  /register — student registration form
+│   └── Register.tsx  /register — student registration form, posts to Formspree
 └── index.css         liquid-glass design system + Instrument Serif import
 
 public/
 └── weeks/
-    └── w0.html        session decks (standalone HTML "broadside" slides)
+    └── w0_english.html   session decks (standalone HTML "broadside" slides)
 
 docs/
 └── style-reference/
@@ -45,7 +45,9 @@ docs/
 ## Branding
 
 - Site name: **The AI-First Leader**
-- GitHub: linked from the footer to `https://github.com/sasistician`
+- Footer links: GitHub (`https://github.com/sasistician`), email (`mailto:bilalf@gmail.com`),
+  LinkedIn (`https://www.linkedin.com/in/sasistician/`, custom inline SVG icon since
+  lucide-react has no brand icons)
 
 ## Liquid glass design system
 
@@ -60,15 +62,16 @@ Headings use the "Instrument Serif" Google Font (imported in `index.css`), appli
 
 ## Adding a new week's deck
 
-1. Drop the standalone HTML deck into `public/weeks/wN.html` (same "broadside" style as
+1. Drop the standalone HTML deck into `public/weeks/wN_english.html` and/or
+   `public/weeks/wN_mandarin.html` (same "broadside" style as
    `docs/style-reference/ai-first-leader-broadside-sample1.html`)
-2. In `src/components/WeeksSection.tsx`, add `N` to the `AVAILABLE_WEEKS` array so its card
-   becomes a live link instead of "Coming soon"
+2. In `src/components/WeeksSection.tsx`, add `N` to `AVAILABLE_ENGLISH` and/or
+   `AVAILABLE_MANDARIN` so that language's link becomes live instead of greyed out
 
 ## Known placeholders to revisit
 
 - Hero background video is a placeholder URL — swap with the real course video
 - About section copy is placeholder — refine with real instructor/course bio
-- Registration form (`src/pages/Register.tsx`) is client-side only (no backend); wire up a
-  form service (e.g. Formspree) when ready
-- Footer social icons (Twitter/Globe) are placeholders — confirm real links or remove
+- Registration form (`src/pages/Register.tsx`) posts to Formspree
+  (`https://formspree.io/f/mwvjabzb`, delivers to bilalf@gmail.com)
+- Mandarin decks not yet added for any week (w0_mandarin.html etc.)

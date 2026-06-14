@@ -2,14 +2,17 @@ import { useState } from 'react'
 import { Globe, ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mwvjabzb'
+
 export default function Register() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!name.trim()) {
@@ -24,7 +27,22 @@ export default function Register() {
     }
 
     setError('')
-    setSubmitted(true)
+    setSubmitting(true)
+
+    try {
+      const response = await fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: new FormData(e.target as HTMLFormElement),
+      })
+
+      if (!response.ok) throw new Error('Submission failed')
+      setSubmitted(true)
+    } catch {
+      setError('Something went wrong submitting your details. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -70,6 +88,7 @@ export default function Register() {
               </label>
               <input
                 id="name"
+                name="name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -84,6 +103,7 @@ export default function Register() {
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -98,6 +118,7 @@ export default function Register() {
               </label>
               <textarea
                 id="message"
+                name="message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Anything you'd like us to know?"
@@ -110,9 +131,10 @@ export default function Register() {
 
             <button
               type="submit"
-              className="w-full bg-white rounded-full px-6 py-3 text-black font-medium hover:bg-white/90 transition-colors"
+              disabled={submitting}
+              className="w-full bg-white rounded-full px-6 py-3 text-black font-medium hover:bg-white/90 transition-colors disabled:opacity-60"
             >
-              Submit
+              {submitting ? 'Submitting…' : 'Submit'}
             </button>
           </form>
         )}
