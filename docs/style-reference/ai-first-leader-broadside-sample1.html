@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The AI-First Leader — Sample 1 (Coral)</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700;800;900&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================
+   THEME TOKENS — CORAL PALETTE
+   =========================================================== */
+:root{
+    --ink:#1A0D0A;
+    --ink-alt:#221210;
+    --orange:#D84D3C;
+    --cream:#FBF5F0;
+    --cream-muted:#9C8078;
+    --cream-hint:#604840;
+    --border-dark:#2C1510;
+    --ink-75:rgba(26,13,10,.75);
+    --ink-55:rgba(26,13,10,.55);
+    --ink-45:rgba(26,13,10,.45);
+    --ink-20:rgba(26,13,10,.20);
+
+    --font-display:'Barlow',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+
+    --display:184px;
+    --h1:140px;
+    --h2:86px;
+    --h3:50px;
+    --stat:104px;
+    --lead:31px;
+    --body:23px;
+    --caption:17px;
+    --label:14px;
+
+    --pad-x:106px;
+    --pad-y:62px;
+    --gap-lg:40px;
+    --gap-md:24px;
+    --gap-sm:12px;
+
+    --ease:cubic-bezier(0.16,1,0.3,1);
+    --ease-slide:cubic-bezier(0.77,0,0.175,1);
+    --stage-bg:#000;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ===========================================================
+   FIXED 16:9 STAGE (viewport-base.css included in full)
+   =========================================================== */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg,#fff);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff);}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+img,video,canvas,svg{max-width:100%;max-height:100%;}
+.deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000;}
+@media print{
+    html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
+    .deck-viewport{position:static;overflow:visible;background:#fff;}
+    .deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none;}
+    .slide{position:relative;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
+    .slide:last-child{break-after:auto;page-break-after:auto;}
+    .deck-controls{display:none!important;}
+}
+@media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.2s!important;}
+}
+
+/* ===========================================================
+   SLIDE FRAME
+   =========================================================== */
+.slide{
+    display:flex;flex-direction:column;
+    padding:var(--pad-y) var(--pad-x);
+    background:#FDEAE4;color:var(--ink);
+    font-family:var(--font-display);
+}
+/* Slide 1 — same coral blush bg, explicit for clarity */
+.slide.orange{background:#FDEAE4;color:var(--ink);}
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;}
+
+/* ===========================================================
+   CHROME
+   =========================================================== */
+.chrome{display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);}
+.chrome.top{border-bottom:1px solid var(--ink-20);padding-bottom:var(--gap-sm);}
+.chrome.bot{border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);margin-top:var(--gap-md);}
+.orange .chrome{color:var(--ink-55);}
+.orange .chrome.top{border-color:var(--ink-20);}
+.orange .chrome.bot{border-color:var(--ink-20);}
+
+/* ===========================================================
+   TYPE
+   =========================================================== */
+.kicker{font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.orange .kicker{color:var(--ink-55);}
+
+.display{font-weight:900;font-size:var(--display);line-height:.88;letter-spacing:-.04em;text-transform:lowercase;}
+.h2{font-weight:800;font-size:var(--h2);line-height:1.02;letter-spacing:-.03em;}
+.h3{font-weight:700;font-size:var(--h3);line-height:1.08;letter-spacing:-.02em;}
+.lead{font-weight:400;font-size:var(--lead);line-height:1.45;color:var(--ink-75);}
+.orange .lead{color:var(--ink-75);}
+.body{font-size:var(--body);line-height:1.55;color:var(--ink-75);}
+.orange .body{color:var(--ink-75);}
+.orange .display,.orange .h2,.orange .h3{color:var(--ink);}
+
+.rule{width:36px;height:2px;background:var(--orange);border:0;}
+.orange .rule{background:var(--ink);}
+
+.broadside-num{font-family:var(--font-mono);font-size:22px;font-weight:500;
+    letter-spacing:.1em;color:var(--ink-45);}
+.slide:not(.orange) .broadside-num{color:var(--ink-45);}
+
+.tag{display:inline-block;font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);
+    border:1px solid var(--orange);padding:.4em .8em;}
+.orange .tag{color:var(--ink-75);border-color:var(--ink-20);}
+
+/* ===========================================================
+   BROADSIDE BULLET LIST
+   =========================================================== */
+.bs-list{list-style:none;}
+.bs-list li{position:relative;padding-left:1.7em;font-size:var(--lead);line-height:1.32;
+    color:var(--ink);margin-bottom:var(--gap-md);}
+.bs-list li:last-child{margin-bottom:0;}
+.bs-list li::before{content:"/";position:absolute;left:0;top:0;color:var(--orange);
+    font-family:var(--font-mono);font-weight:700;}
+
+/* ===========================================================
+   WEEK TABLE
+   =========================================================== */
+.week-table{display:flex;flex-direction:column;flex:1;justify-content:center;min-height:0;}
+.week-row{display:grid;grid-template-columns:72px 1.02fr 1.35fr 1.5fr;gap:38px;align-items:start;
+    border-top:1px solid var(--ink-20);padding:11px 0;}
+.week-row:last-child{border-bottom:1px solid var(--ink-20);}
+.wk-num{font-weight:900;font-size:44px;line-height:.9;letter-spacing:-.04em;color:var(--orange);}
+.wk-theme .lbl{display:block;font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--orange);margin-bottom:5px;}
+.wk-theme .ttl{font-weight:800;font-size:23px;line-height:1.02;letter-spacing:-.02em;color:var(--ink);}
+.wk-cell .lbl{display:block;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;margin-bottom:5px;}
+.wk-cell.explore .lbl{color:var(--ink-45);}
+.wk-cell.build .lbl{color:var(--orange);}
+.wk-cell p{font-size:15px;line-height:1.42;color:var(--ink-55);}
+.wk-cell.build p{color:var(--ink);}
+.wk-cell .out{display:block;margin-top:6px;color:var(--orange);font-weight:600;}
+
+/* ===========================================================
+   CERT BAND
+   =========================================================== */
+.cert-band{background:var(--orange);color:var(--ink);
+    margin:0 calc(-1 * var(--pad-x));padding:30px var(--pad-x);
+    display:flex;align-items:center;gap:48px;}
+.cert-seal{font-weight:900;font-size:62px;line-height:.9;letter-spacing:-.04em;white-space:nowrap;}
+.cert-copy{font-size:var(--body);line-height:1.4;color:var(--ink-75);}
+.cert-copy b{color:var(--ink);font-weight:800;}
+
+/* ===========================================================
+   OUTCOME PILLARS (slide 1 addition)
+   =========================================================== */
+.outcome-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+    border-top:1px solid var(--ink-20);padding-top:20px;}
+.outcome-item{padding-right:20px;}
+.outcome-item .on{display:block;font-family:var(--font-mono);font-size:11px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);margin-bottom:6px;}
+.outcome-item .ot{font-weight:800;font-size:20px;line-height:1.1;color:var(--ink);}
+
+/* Spacing helpers */
+.stack>*+*{margin-top:var(--gap-md);}
+.stack-lg>*+*{margin-top:var(--gap-lg);}
+.mt-sm{margin-top:var(--gap-sm);}
+.mt-md{margin-top:var(--gap-md);}
+.mt-lg{margin-top:var(--gap-lg);}
+.maxw{max-width:62%;}
+
+/* ===========================================================
+   ANIMATIONS
+   =========================================================== */
+.reveal{opacity:0;transform:translateY(34px);
+    transition:opacity .6s var(--ease),transform .6s var(--ease);}
+.slide.visible .reveal{opacity:1;transform:none;}
+.reveal-wipe{opacity:0;clip-path:inset(0 0 100% 0);
+    transition:opacity .7s var(--ease),clip-path .9s var(--ease-slide);}
+.slide.visible .reveal-wipe{opacity:1;clip-path:inset(0 0 0 0);}
+
+/* ===========================================================
+   PRESENTATION CHROME
+   =========================================================== */
+.deck-counter{position:fixed;right:26px;bottom:22px;z-index:1000;
+    font-family:var(--font-mono);font-size:13px;letter-spacing:.16em;
+    color:rgba(251,245,240,.55);}
+.deck-counter .cur{color:var(--orange);}
+.nav-dots{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1000;
+    display:flex;gap:12px;}
+.nav-dots button{width:9px;height:9px;border-radius:50%;border:1px solid rgba(251,245,240,.4);
+    background:transparent;cursor:pointer;padding:0;transition:all .3s var(--ease);}
+.nav-dots button.on{background:var(--orange);border-color:var(--orange);transform:scale(1.15);}
+
+/* Inline editing */
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.edit-toggle{position:fixed;top:18px;left:18px;z-index:10001;width:46px;height:46px;
+    border:1px solid var(--orange);background:var(--ink);color:var(--cream);font-size:18px;
+    cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}
+.edit-toggle.active{background:var(--orange);color:var(--ink);}
+body.editing [data-ed]{outline:1px dashed rgba(216,77,60,.7);outline-offset:4px;cursor:text;}
+body.editing [data-ed]:focus{outline:1px solid var(--orange);}
+.edit-hint{position:fixed;top:18px;left:74px;z-index:10001;font-family:var(--font-mono);
+    font-size:12px;letter-spacing:.1em;color:var(--cream-muted);background:var(--ink);
+    padding:14px 12px;border:1px solid var(--border-dark);display:none;}
+body.editing .edit-hint{display:block;}
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- ============================================================
+     SLIDE 1 — COVER (coral blush left + dark warm right).
+     Split: hero text column | data panel.
+     ============================================================ -->
+<section class="slide orange active">
+
+    <header style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span class="broadside-num reveal" data-ed>№ 01 — 03</span>
+        <span class="broadside-num reveal" data-ed>Starts 20 June · small online cohort</span>
+    </header>
+
+    <!-- Two-column body: hero left / data right, split by hairline -->
+    <div class="slide-body" style="flex-direction:row;align-items:stretch;gap:0;">
+
+        <!-- ── LEFT: kicker · display heading · subtitle · badges · lead ── -->
+        <div style="flex:1.1;display:flex;flex-direction:column;justify-content:center;
+                    padding-right:72px;border-right:1px solid var(--ink-20);">
+            <div class="kicker reveal" data-ed>A 5-week online cohort · starts 20 June · built on Claude Code</div>
+            <div class="rule reveal mt-md"></div>
+            <h1 class="display reveal-wipe mt-md" style="text-transform:none;" data-ed>The AI-First<br>leader.</h1>
+            <h2 class="h3 reveal mt-md" style="font-weight:700;" data-ed>the executive ai program</h2>
+            <div class="reveal mt-md" style="display:flex;gap:14px;align-items:center;">
+                <span class="tag" style="font-size:15px;letter-spacing:.12em;padding:.55em 1.05em;
+                      background:var(--ink);color:var(--orange);border-color:var(--ink);" data-ed>Built for leaders</span>
+                <span class="tag" style="font-size:15px;letter-spacing:.12em;padding:.55em 1.05em;" data-ed>For POs, PMs &amp; business leaders</span>
+            </div>
+            <p class="lead reveal mt-md" data-ed><b>Reinvent yourself for the era of AI.</b>
+                Five weeks to go from <i>chatting</i> with AI to <b>directing</b> it — across your own work and every team you lead.</p>
+        </div>
+
+        <!-- ── RIGHT: anchor statement · MIT stats · 4 outcome pillars ── -->
+        <div style="flex:0.9;display:flex;flex-direction:column;justify-content:space-evenly;
+                    padding-left:72px;">
+
+            <!-- Bold anchor statement -->
+            <div class="reveal">
+                <p class="h2" style="font-size:52px;line-height:1.0;letter-spacing:-.03em;" data-ed>the gap between talking about AI and leading with it is widening — fast.</p>
+            </div>
+
+            <!-- MIT Technology Review stat block -->
+            <div class="reveal" style="padding-bottom:var(--gap-lg);
+                         border-bottom:1px solid var(--ink-20);">
+                <div style="display:flex;gap:24px;align-items:flex-start;margin-bottom:16px;">
+                    <div style="flex:1;">
+                        <span style="display:block;font-weight:900;font-size:96px;line-height:1;
+                                     letter-spacing:-.04em;color:var(--ink);" data-ed>67%</span>
+                        <span style="display:block;font-family:var(--font-mono);font-size:16px;
+                                     letter-spacing:.06em;color:var(--ink-75);margin-top:8px;" data-ed>of organisations already leverage AI tools</span>
+                    </div>
+                    <div style="width:1px;background:var(--ink-20);align-self:stretch;flex-shrink:0;"></div>
+                    <div style="flex:1;">
+                        <span style="display:block;font-weight:900;font-size:96px;line-height:1;
+                                     letter-spacing:-.04em;color:var(--ink);" data-ed>19%</span>
+                        <span style="display:block;font-family:var(--font-mono);font-size:16px;
+                                     letter-spacing:.06em;color:var(--ink-75);margin-top:8px;" data-ed>have actually deployed AI agents</span>
+                    </div>
+                </div>
+                <p style="font-family:var(--font-mono);font-size:14px;line-height:1.5;
+                           letter-spacing:.04em;color:var(--ink-75);" data-ed>The gap is your advantage — agentic AI is already a force multiplier for performance. This course moves you from the 81% to the front.
+                    <br><span style="color:var(--ink-45);font-size:12px;">— MIT Technology Review</span></p>
+            </div>
+
+            <!-- Fear/urgency callout -->
+            <div class="reveal" style="padding:16px 0;border-bottom:1px solid var(--ink-20);">
+                <p style="font-size:18px;line-height:1.45;color:var(--ink);" data-ed>Industry leaders who can't evaluate, spec, or interrogate AI systems are <span style="color:var(--orange);font-weight:700;">already being bypassed</span> in product decisions.</p>
+            </div>
+
+            <!-- 4 outcome pillars (wider, no-wrap) -->
+            <div class="reveal" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+                         border-top:1px solid var(--ink-20);padding-top:20px;">
+                <div style="padding-right:16px;">
+                    <span style="display:block;font-family:var(--font-mono);font-size:11px;
+                                 letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);
+                                 margin-bottom:8px;font-size:14px;" data-ed>01</span>
+                    <span style="font-weight:800;font-size:22px;line-height:1.1;color:var(--ink);
+                                 display:block;" data-ed>run work ai-first</span>
+                </div>
+                <div style="padding-right:16px;">
+                    <span style="display:block;font-family:var(--font-mono);font-size:11px;
+                                 letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);
+                                 margin-bottom:8px;font-size:14px;" data-ed>02</span>
+                    <span style="font-weight:800;font-size:22px;line-height:1.1;color:var(--ink);
+                                 display:block;" data-ed>own a working AI system</span>
+                </div>
+                <div style="padding-right:16px;">
+                    <span style="display:block;font-family:var(--font-mono);font-size:11px;
+                                 letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);
+                                 margin-bottom:8px;font-size:14px;" data-ed>03</span>
+                    <span style="font-weight:800;font-size:22px;line-height:1.1;color:var(--ink);
+                                 display:block;" data-ed>map your org</span>
+                </div>
+                <div>
+                    <span style="display:block;font-family:var(--font-mono);font-size:11px;
+                                 letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);
+                                 margin-bottom:8px;font-size:14px;" data-ed>04</span>
+                    <span style="font-weight:800;font-size:22px;line-height:1.1;color:var(--ink);
+                                 display:block;" data-ed>lead technical teams</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="display:flex;justify-content:space-between;align-items:flex-end;
+                   border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);">
+        <span class="body reveal" style="color:var(--ink-75);" data-ed>Bilal Farooq · 20 years in data science &amp; AI · six countries</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+            <span class="kicker reveal" data-ed>$950 · fully tax-deductible · for senior &amp; mid-level leaders</span>
+            <span class="reveal" style="font-family:var(--font-mono);font-size:15px;letter-spacing:.08em;color:var(--orange);font-weight:600;" data-ed>Limited seats! Register your interest: bilalf@gmail.com</span>
+        </div>
+    </footer>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 2 — THE FIVE-WEEK CLIMB.
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Program</span>
+        <span data-ed>02 — 03</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>the five-week climb · what each week explores and builds</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;line-height:1.0;" data-ed>Five weeks to go from AI user to AI leader — and drive AI transformation across your organisation.</h2>
+            <p class="body reveal mt-sm maxw" style="font-size:19px;" data-ed>Week 0 gets Claude Code running before we begin — no coding required: you direct, the AI does the work. Nothing resets; each week stacks on the last, and most leaders start reclaiming hours within the first fortnight.</p>
+        </div>
+
+        <div class="week-table">
+            <!-- WEEK 1 -->
+            <div class="week-row reveal" style="transition-delay:.05s">
+                <div class="wk-num" data-ed>01</div>
+                <div class="wk-theme">
+                    <span class="lbl" data-ed>Week 01 · Mindset</span>
+                    <span class="ttl" data-ed>your first agent</span>
+                </div>
+                <div class="wk-cell explore">
+                    <span class="lbl" data-ed>Explore</span>
+                    <p data-ed>From prompting a chatbot to directing an agent — the agentic loop, what a "tool" is, and why context is the whole game. The reframe: you now manage AI labour.</p>
+                </div>
+                <div class="wk-cell build">
+                    <span class="lbl" data-ed>You build</span>
+                    <p data-ed>Automate one real recurring task from your own week — inbox triage, a meeting-prep brief, a research digest.<span class="out" data-ed>→ Leave with: one recurring task off your plate — zero code written.</span></p>
+                </div>
+            </div>
+
+            <!-- WEEK 2 -->
+            <div class="week-row reveal" style="transition-delay:.12s">
+                <div class="wk-num" data-ed>02</div>
+                <div class="wk-theme">
+                    <span class="lbl" data-ed>Week 02 · Knowledge</span>
+                    <span class="ttl" data-ed>grounding</span>
+                </div>
+                <div class="wk-cell explore">
+                    <span class="lbl" data-ed>Explore</span>
+                    <p data-ed>Why generic models give generic answers. How agents get grounded — project files &amp; memory, skills, and retrieval (RAG). What MCP is: how the AI plugs into your tools and data.</p>
+                </div>
+                <div class="wk-cell build">
+                    <span class="lbl" data-ed>You build</span>
+                    <p data-ed>Connect Claude to your own documents and give it a persistent memory of how you work.<span class="out" data-ed>→ Leave with: an AI that knows your business and answers reliably about it.</span></p>
+                </div>
+            </div>
+
+            <!-- WEEK 3 -->
+            <div class="week-row reveal" style="transition-delay:.19s">
+                <div class="wk-num" data-ed>03</div>
+                <div class="wk-theme">
+                    <span class="lbl" data-ed>Week 03 · Orchestration</span>
+                    <span class="ttl" data-ed>delegation</span>
+                </div>
+                <div class="wk-cell explore">
+                    <span class="lbl" data-ed>Explore</span>
+                    <p data-ed>Orchestration is management. Designing sub-agents, when to delegate vs. do, chaining multi-step workflows, giving agents reach via MCP tools, failure modes &amp; the human-in-the-loop.</p>
+                </div>
+                <div class="wk-cell build">
+                    <span class="lbl" data-ed>You build</span>
+                    <p data-ed>A multi-step workflow or a team of sub-agents that owns a recurring job end-to-end.<span class="out" data-ed>→ Leave with: a delegated AI workflow your team can run end-to-end.</span></p>
+                </div>
+            </div>
+
+            <!-- WEEK 4 -->
+            <div class="week-row reveal" style="transition-delay:.26s">
+                <div class="wk-num" data-ed>04</div>
+                <div class="wk-theme">
+                    <span class="lbl" data-ed>Week 04 · Strategy</span>
+                    <span class="ttl" data-ed>operating model</span>
+                </div>
+                <div class="wk-cell explore">
+                    <span class="lbl" data-ed>Explore</span>
+                    <p data-ed>From personal use to org leverage — opportunity portfolios, value × feasibility prioritisation, build-vs-buy, ROI, risk &amp; governance, and how to challenge vendors and technical teams.</p>
+                </div>
+                <div class="wk-cell build">
+                    <span class="lbl" data-ed>You build</span>
+                    <p data-ed>Your AI-First Opportunity Map and a prioritised 90-day roadmap for your organisation.<span class="out" data-ed>→ Leave with: a defensible org-level AI roadmap.</span></p>
+                </div>
+            </div>
+
+            <!-- WEEK 5 -->
+            <div class="week-row reveal" style="transition-delay:.33s">
+                <div class="wk-num" data-ed>05</div>
+                <div class="wk-theme">
+                    <span class="lbl" data-ed>Week 05 · Capstone</span>
+                    <span class="ttl" data-ed>ship &amp; certify</span>
+                </div>
+                <div class="wk-cell explore">
+                    <span class="lbl" data-ed>Explore</span>
+                    <p data-ed>What "production-ready" and "trustworthy" mean at exec altitude — evaluation, reliability, guardrails, security, and knowing when not to automate. Telling a real agent from a demo.</p>
+                </div>
+                <div class="wk-cell build">
+                    <span class="lbl" data-ed>You build</span>
+                    <p data-ed>Finalise and defend your capstone agent in a live online showcase.<span class="out" data-ed>→ Leave with: a live AI product you own + the AI Leader certification.</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 3 — SOCIAL PROOF / TESTIMONIALS
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>What people say · from previous cohorts · four voices</span>
+        <span data-ed>03 — 03</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>from previous cohorts · four voices</div>
+            <h2 class="h2 reveal mt-md" style="font-size:62px;line-height:1.0;" data-ed>Students from previous cohorts say about the course.</h2>
+        </div>
+
+        <!-- 2×2 testimonial grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:0;flex:1;min-height:0;">
+
+            <!-- Milica -->
+            <div class="reveal" style="border-top:1px solid var(--ink-20);border-right:1px solid var(--ink-20);padding:22px 40px 22px 0;transition-delay:.05s">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                    <div>
+                        <span style="font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-45);" data-ed>Senior Director, Global Head of Data &amp; Analytics</span>
+                        <div style="font-weight:800;font-size:26px;line-height:1.1;color:var(--ink);margin-top:6px;" data-ed>Milica</div>
+                    </div>
+                    <div style="font-weight:900;font-size:72px;line-height:1;letter-spacing:-.04em;color:var(--orange);flex-shrink:0;margin-left:20px;" data-ed>10</div>
+                </div>
+                <p style="font-size:19px;line-height:1.5;color:var(--ink-75);" data-ed>This was an excellent, truly production-ready agent course. The instructor was down-to-earth, incredibly experienced, and wonderfully patient — with a great sense of humour that made even the complex parts enjoyable. The course was exceptionally well-researched, delivered with real depth of knowledge, and packed with practical, immediately useful materials. Highly recommended for anyone wanting to build RAGs with confidence.</p>
+            </div>
+
+            <!-- Simon -->
+            <div class="reveal" style="border-top:1px solid var(--ink-20);padding:22px 0 22px 40px;transition-delay:.1s">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                    <div>
+                        <span style="font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-45);" data-ed>Head of Data Platforms and Engineering</span>
+                        <div style="font-weight:800;font-size:26px;line-height:1.1;color:var(--ink);margin-top:6px;" data-ed>Simon</div>
+                    </div>
+                    <div style="font-weight:900;font-size:72px;line-height:1;letter-spacing:-.04em;color:var(--orange);flex-shrink:0;margin-left:20px;" data-ed>9</div>
+                </div>
+                <p style="font-size:19px;line-height:1.5;color:var(--ink-75);" data-ed>Higly recommend this course. Bilal is very knowledgeable and explains the concepts clearly. I learnt a lot about GenAI and n8n from doing this course.</p>
+            </div>
+
+            <!-- Suretha -->
+            <div class="reveal" style="border-top:1px solid var(--ink-20);border-right:1px solid var(--ink-20);padding:22px 40px 22px 0;transition-delay:.15s">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                    <div>
+                        <span style="font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-45);" data-ed>Data Scientist</span>
+                        <div style="font-weight:800;font-size:26px;line-height:1.1;color:var(--ink);margin-top:6px;" data-ed>Suretha</div>
+                    </div>
+                    <div style="font-weight:900;font-size:72px;line-height:1;letter-spacing:-.04em;color:var(--orange);flex-shrink:0;margin-left:20px;" data-ed>10</div>
+                </div>
+                <p style="font-size:19px;line-height:1.5;color:var(--ink-75);" data-ed>Throughout the course, I gained valuable insights into the evolving Agentic AI space. I had the opportunity to explore and work with emerging tools and frameworks such as n8n, LangGraph, Supabase, and Lovable for building agentic systems. The cohort was highly practical and interactive, which made it easier to apply concepts and develop the project progressively throughout the program.</p>
+            </div>
+
+            <!-- Sophy -->
+            <div class="reveal" style="border-top:1px solid var(--ink-20);padding:22px 0 22px 40px;transition-delay:.2s">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                    <div>
+                        <span style="font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-45);" data-ed>Assistant Manager, Fine Accounting</span>
+                        <div style="font-weight:800;font-size:26px;line-height:1.1;color:var(--ink);margin-top:6px;" data-ed>Sophy</div>
+                    </div>
+                    <div style="font-weight:900;font-size:72px;line-height:1;letter-spacing:-.04em;color:var(--orange);flex-shrink:0;margin-left:20px;" data-ed>10</div>
+                </div>
+                <p style="font-size:19px;line-height:1.5;color:var(--ink-75);" data-ed>Creating production ready agents was a great course, the instructor led the class from a basic level and within a few hours we were building agents. We covered all the technical aspects of building agents and learned in detail about Gen AI / LLM. I personally build a financial market update agent - which helped me to reduce my time to search through all financial markets information. I highly recommend this course.</p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+</main>
+</div>
+
+<!-- Presentation chrome (outside the scaled stage) -->
+<div class="deck-counter"><span class="cur" id="curNum">01</span> / <span id="totNum">02</span></div>
+<nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+<!-- Inline editing affordance -->
+<div class="edit-hotzone" aria-hidden="true"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">✎</button>
+<div class="edit-hint">EDIT MODE · click any text · Ctrl+S saves · ⤓ exports</div>
+
+<script>
+/* ===========================================================
+   SLIDE CONTROLLER
+   =========================================================== */
+class SlidePresentation{
+    constructor(){
+        this.stage=document.getElementById('deckStage');
+        this.slides=[...document.querySelectorAll('.slide')];
+        this.current=0;
+        this.buildDots();
+        this.setupStageScale();
+        this.setupNav();
+        this.show(0);
+    }
+    setupStageScale(){
+        const scale=()=>{
+            const f=Math.min(window.innerWidth/1920,window.innerHeight/1080);
+            const x=(window.innerWidth-1920*f)/2;
+            const y=(window.innerHeight-1080*f)/2;
+            this.stage.style.transform=`translate(${x}px,${y}px) scale(${f})`;
+        };
+        scale();
+        window.addEventListener('resize',scale);
+    }
+    buildDots(){
+        const wrap=document.getElementById('navDots');
+        this.slides.forEach((_,i)=>{
+            const b=document.createElement('button');
+            b.setAttribute('aria-label','Go to slide '+(i+1));
+            b.addEventListener('click',()=>this.show(i));
+            wrap.appendChild(b);
+        });
+        this.dots=[...wrap.children];
+        document.getElementById('totNum').textContent=String(this.slides.length).padStart(2,'0');
+    }
+    setupNav(){
+        document.addEventListener('keydown',e=>{
+            if(e.target.getAttribute&&e.target.getAttribute('contenteditable')==='true')return;
+            if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();this.next();}
+            else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.prev();}
+            else if(e.key==='Home'){this.show(0);}
+            else if(e.key==='End'){this.show(this.slides.length-1);}
+        });
+        let wheelLock=false;
+        window.addEventListener('wheel',e=>{
+            if(document.body.classList.contains('editing'))return;
+            if(wheelLock)return;
+            if(Math.abs(e.deltaY)<24)return;
+            wheelLock=true;setTimeout(()=>wheelLock=false,700);
+            e.deltaY>0?this.next():this.prev();
+        },{passive:true});
+        let sx=0,sy=0;
+        window.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+        window.addEventListener('touchend',e=>{
+            const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+            if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){dx<0?this.next():this.prev();}
+        },{passive:true});
+    }
+    show(i){
+        this.current=Math.max(0,Math.min(i,this.slides.length-1));
+        this.slides.forEach((s,n)=>{
+            s.classList.toggle('active',n===this.current);
+            s.classList.toggle('visible',n===this.current);
+        });
+        this.dots.forEach((d,n)=>d.classList.toggle('on',n===this.current));
+        document.getElementById('curNum').textContent=String(this.current+1).padStart(2,'0');
+    }
+    next(){this.show(this.current+1);}
+    prev(){this.show(this.current-1);}
+}
+
+/* ===========================================================
+   INLINE EDITOR
+   =========================================================== */
+class Editor{
+    constructor(){
+        this.isActive=false;
+        this.els=[...document.querySelectorAll('[data-ed]')];
+        this.restore();
+        this.wire();
+    }
+    key(){return 'broadside-deck-s1::'+location.pathname;}
+    restore(){
+        try{
+            const saved=JSON.parse(localStorage.getItem(this.key())||'null');
+            if(saved&&Array.isArray(saved)&&saved.length===this.els.length){
+                this.els.forEach((el,i)=>{if(saved[i]!=null)el.innerHTML=saved[i];});
+            }
+        }catch(_){}
+    }
+    save(){
+        try{localStorage.setItem(this.key(),JSON.stringify(this.els.map(el=>el.innerHTML)));}catch(_){}
+    }
+    toggleEditMode(){
+        this.isActive=!this.isActive;
+        document.body.classList.toggle('editing',this.isActive);
+        document.getElementById('editToggle').classList.toggle('active',this.isActive);
+        this.els.forEach(el=>{
+            el.setAttribute('contenteditable',this.isActive?'true':'false');
+            if(this.isActive){el.addEventListener('input',this._oninput);}
+        });
+    }
+    _oninput=()=>this.save();
+    export(){
+        const clone=document.documentElement.cloneNode(true);
+        clone.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+        clone.querySelectorAll('.edit-hotzone,.edit-toggle,.edit-hint').forEach(n=>n.remove());
+        const html='<!DOCTYPE html>\n'+clone.outerHTML;
+        const blob=new Blob([html],{type:'text/html'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='ai-first-leader-broadside-sample1.html';
+        a.click();
+    }
+    wire(){
+        const toggle=document.getElementById('editToggle');
+        const hotzone=document.querySelector('.edit-hotzone');
+        let hideTimeout=null;
+        toggle.addEventListener('click',()=>this.toggleEditMode());
+        hotzone.addEventListener('mouseenter',()=>{clearTimeout(hideTimeout);toggle.classList.add('show');});
+        hotzone.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        toggle.addEventListener('mouseenter',()=>clearTimeout(hideTimeout));
+        toggle.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        hotzone.addEventListener('click',()=>this.toggleEditMode());
+        document.addEventListener('keydown',e=>{
+            if((e.key==='e'||e.key==='E')&&e.target.getAttribute&&e.target.getAttribute('contenteditable')!=='true'){this.toggleEditMode();}
+            if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();this.save();this.flash('saved');}
+            if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='e'&&this.isActive){e.preventDefault();this.export();}
+        });
+    }
+    flash(msg){
+        const hint=document.querySelector('.edit-hint');
+        if(!hint)return;const prev=hint.textContent;hint.textContent=msg.toUpperCase();
+        setTimeout(()=>hint.textContent=prev,1000);
+    }
+}
+
+const deck=new SlidePresentation();
+const editor=new Editor();
+</script>
+</body>
+</html>
