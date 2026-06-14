@@ -10,10 +10,10 @@ const WEEK_LABELS = [
 // Decks available at /weeks/wN_english.html / /weeks/wN_mandarin.html.
 // Add a week number to a list once that language's file exists in public/weeks/.
 const AVAILABLE_ENGLISH = [0]
-const AVAILABLE_MANDARIN: number[] = []
+const AVAILABLE_MANDARIN: number[] = [0]
 
 function DeckLink({ num, lang, available }: { num: number; lang: 'english' | 'mandarin'; available: boolean }) {
-  const label = lang === 'english' ? 'English' : 'Mandarin'
+  const label = lang === 'english' ? 'English' : '中文'
 
   if (!available) {
     return <span className="text-white/30 cursor-not-allowed">{label}</span>
