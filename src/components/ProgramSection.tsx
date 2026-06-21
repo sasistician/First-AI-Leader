@@ -63,6 +63,27 @@ export default function ProgramSection() {
             </div>
           ))}
         </div>
+
+        <p className="text-white/60 text-sm mt-8">
+          For detailed view please click the links:{' '}
+          <a
+            href="/program-overview_english.html"
+            target="_blank"
+            rel="noreferrer"
+            className="text-white/80 hover:text-white underline transition-colors"
+          >
+            English
+          </a>{' '}
+          <span className="text-white/30">&amp;</span>{' '}
+          <a
+            href="/program-overview_mandarin.html"
+            target="_blank"
+            rel="noreferrer"
+            className="text-white/80 hover:text-white underline transition-colors"
+          >
+            中文
+          </a>
+        </p>
       </div>
     </section>
   )

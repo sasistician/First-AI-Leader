@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI优先领导者 — 样本1（珊瑚版）</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700;800;900&family=IBM+Plex+Mono:wght@500&family=Noto+Sans+SC:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================
+   THEME TOKENS — CORAL PALETTE
+   =========================================================== */
+:root{
+    --ink:#1A0D0A;
+    --ink-alt:#221210;
+    --orange:#D84D3C;
+    --cream:#FBF5F0;
+    --cream-muted:#9C8078;
+    --cream-hint:#604840;
+    --border-dark:#2C1510;
+    --ink-75:rgba(26,13,10,.75);
+    --ink-55:rgba(26,13,10,.55);
+    --ink-45:rgba(26,13,10,.45);
+    --ink-20:rgba(26,13,10,.20);
+
+    --font-display:'Noto Sans SC','Barlow',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+
+    --display:184px;
+    --h1:140px;
+    --h2:86px;
+    --h3:50px;
+    --stat:104px;
+    --lead:31px;
+    --body:23px;
+    --caption:17px;
+    --label:14px;
+
+    --pad-x:106px;
+    --pad-y:62px;
+    --gap-lg:40px;
+    --gap-md:24px;
+    --gap-sm:12px;
+
+    --ease:cubic-bezier(0.16,1,0.3,1);
+    --ease-slide:cubic-bezier(0.77,0,0.175,1);
+    --stage-bg:#000;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ===========================================================
+   FIXED 16:9 STAGE (viewport-base.css included in full)
+   =========================================================== */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg,#fff);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff);}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+img,video,canvas,svg{max-width:100%;max-height:100%;}
+.deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000;}
+@media print{
+    html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
+    .deck-viewport{position:static;overflow:visible;background:#fff;}
+    .deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none;}
+    .slide{position:relative;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
+    .slide:last-child{break-after:auto;page-break-after:auto;}
+    .deck-controls{display:none!important;}
+}
+@media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.2s!important;}
+}
+
+/* ===========================================================
+   SLIDE FRAME
+   =========================================================== */
+.slide{
+    display:flex;flex-direction:column;
+    padding:var(--pad-y) var(--pad-x);
+    background:#FDEAE4;color:var(--ink);
+    font-family:var(--font-display);
+}
+/* Slide 1 — same coral blush bg, explicit for clarity */
+.slide.orange{background:#FDEAE4;color:var(--ink);}
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;}
+
+/* ===========================================================
+   CHROME
+   =========================================================== */
+.chrome{display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);}
+.chrome.top{border-bottom:1px solid var(--ink-20);padding-bottom:var(--gap-sm);}
+.chrome.bot{border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);margin-top:var(--gap-md);}
+.orange .chrome{color:var(--ink-55);}
+.orange .chrome.top{border-color:var(--ink-20);}
+.orange .chrome.bot{border-color:var(--ink-20);}
+
+/* ===========================================================
+   TYPE
+   =========================================================== */
+.kicker{font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.orange .kicker{color:var(--ink-55);}
+
+.display{font-weight:900;font-size:var(--display);line-height:.88;letter-spacing:-.04em;text-transform:lowercase;}
+.h2{font-weight:800;font-size:var(--h2);line-height:1.02;letter-spacing:-.03em;}
+.h3{font-weight:700;font-size:var(--h3);line-height:1.08;letter-spacing:-.02em;}
+.lead{font-weight:400;font-size:var(--lead);line-height:1.45;color:var(--ink-75);}
+.orange .lead{color:var(--ink-75);}
+.body{font-size:var(--body);line-height:1.55;color:var(--ink-75);}
+.orange .body{color:var(--ink-75);}
+.orange .display,.orange .h2,.orange .h3{color:var(--ink);}
+
+.rule{width:36px;height:2px;background:var(--orange);border:0;}
+.orange .rule{background:var(--ink);}
+
+.broadside-num{font-family:var(--font-mono);font-size:22px;font-weight:500;
+    letter-spacing:.1em;color:var(--ink-45);}
+.slide:not(.orange) .broadside-num{color:var(--ink-45);}
+
+.tag{display:inline-block;font-family:var(--font-display);font-size:var(--label);font-weight:500;
+    letter-spacing:.04em;text-transform:none;color:var(--orange);
+    border:1px solid var(--orange);padding:.4em .8em;}
+.orange .tag{color:var(--ink-75);border-color:var(--ink-20);}
+
+/* ===========================================================
+   BROADSIDE BULLET LIST
+   =========================================================== */
+.bs-list{list-style:none;}
+.bs-list li{position:relative;padding-left:1.7em;font-size:var(--lead);line-height:1.32;
+    color:var(--ink);margin-bottom:var(--gap-md);}
+.bs-list li:last-child{margin-bottom:0;}
+.bs-list li::before{content:"/";position:absolute;left:0;top:0;color:var(--orange);
+    font-family:var(--font-mono);font-weight:700;}
+
+/* ===========================================================
+   WEEK TABLE
+   =========================================================== */
+.week-table{display:flex;flex-direction:column;flex:1;justify-content:center;min-height:0;}
+.week-row{display:grid;grid-template-columns:72px 1.02fr 1.35fr 1.5fr;gap:38px;align-items:start;
+    border-top:1px solid var(--ink-20);padding:11px 0;}
+.week-row:last-child{border-bottom:1px solid var(--ink-20);}
+.wk-num{font-weight:900;font-size:44px;line-height:.9;letter-spacing:-.04em;color:var(--orange);}
+.wk-theme .lbl{display:block;font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--orange);margin-bottom:5px;}
+.wk-theme .ttl{font-weight:800;font-size:23px;line-height:1.02;letter-spacing:-.02em;color:var(--ink);}
+.wk-cell .lbl{display:block;font-family:var(--font-display);font-size:12px;letter-spacing:.04em;
+    text-transform:none;margin-bottom:5px;}
+.wk-cell.explore .lbl{color:var(--ink-45);}
+.wk-cell.build .lbl{color:var(--orange);}
+.wk-cell p{font-size:15px;line-height:1.42;color:var(--ink-55);}
+.wk-cell.build p{color:var(--ink);}
+.wk-cell .out{display:block;margin-top:6px;color:var(--orange);font-weight:600;}
+
+/* ===========================================================
+   CERT BAND
+   =========================================================== */
+.cert-band{background:var(--orange);color:var(--ink);
+    margin:0 calc(-1 * var(--pad-x));padding:30px var(--pad-x);
+    display:flex;align-items:center;gap:48px;}
+.cert-seal{font-weight:900;font-size:62px;line-height:.9;letter-spacing:-.04em;white-space:nowrap;}
+.cert-copy{font-size:var(--body);line-height:1.4;color:var(--ink-75);}
+.cert-copy b{color:var(--ink);font-weight:800;}
+
+/* ===========================================================
+   OUTCOME PILLARS (slide 1 addition)
+   =========================================================== */
+.outcome-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+    border-top:1px solid var(--ink-20);padding-top:20px;}
+.outcome-item{padding-right:20px;}
+.outcome-item .on{display:block;font-family:var(--font-mono);font-size:11px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);margin-bottom:6px;}
+.outcome-item .ot{font-weight:800;font-size:20px;line-height:1.1;color:var(--ink);}
+
+/* Spacing helpers */
+.stack>*+*{margin-top:var(--gap-md);}
+.stack-lg>*+*{margin-top:var(--gap-lg);}
+.mt-sm{margin-top:var(--gap-sm);}
+.mt-md{margin-top:var(--gap-md);}
+.mt-lg{margin-top:var(--gap-lg);}
+.maxw{max-width:62%;}
+
+/* ===========================================================
+   ANIMATIONS
+   =========================================================== */
+.reveal{opacity:0;transform:translateY(34px);
+    transition:opacity .6s var(--ease),transform .6s var(--ease);}
+.slide.visible .reveal{opacity:1;transform:none;}
+.reveal-wipe{opacity:0;clip-path:inset(0 0 100% 0);
+    transition:opacity .7s var(--ease),clip-path .9s var(--ease-slide);}
+.slide.visible .reveal-wipe{opacity:1;clip-path:inset(0 0 0 0);}
+
+/* ===========================================================
+   PRESENTATION CHROME
+   =========================================================== */
+.deck-counter{position:fixed;right:26px;bottom:22px;z-index:1000;
+    font-family:var(--font-mono);font-size:13px;letter-spacing:.16em;
+    color:rgba(251,245,240,.55);}
+.deck-counter .cur{color:var(--orange);}
+.nav-dots{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1000;
+    display:flex;gap:12px;}
+.nav-dots button{width:9px;height:9px;border-radius:50%;border:1px solid rgba(251,245,240,.4);
+    background:transparent;cursor:pointer;padding:0;transition:all .3s var(--ease);}
+.nav-dots button.on{background:var(--orange);border-color:var(--orange);transform:scale(1.15);}
+
+/* Inline editing */
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.edit-toggle{position:fixed;top:18px;left:18px;z-index:10001;width:46px;height:46px;
+    border:1px solid var(--orange);background:var(--ink);color:var(--cream);font-size:18px;
+    cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}
+.edit-toggle.active{background:var(--orange);color:var(--ink);}
+body.editing [data-ed]{outline:1px dashed rgba(216,77,60,.7);outline-offset:4px;cursor:text;}
+body.editing [data-ed]:focus{outline:1px solid var(--orange);}
+.edit-hint{position:fixed;top:18px;left:74px;z-index:10001;font-family:var(--font-mono);
+    font-size:12px;letter-spacing:.1em;color:var(--cream-muted);background:var(--ink);
+    padding:14px 12px;border:1px solid var(--border-dark);display:none;}
+body.editing .edit-hint{display:block;}
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- ============================================================
+     幻灯片 1 — 封面
+     ============================================================ -->
+<section class="slide orange active">
+
+    <header style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span class="broadside-num reveal" data-ed>№ 01 — 03</span>
+        <span class="broadside-num reveal" data-ed>6月27日开课 · 小规模在线小班</span>
+    </header>
+
+    <!-- Two-column body: hero left / data right, split by hairline -->
+    <div class="slide-body" style="flex-direction:row;align-items:stretch;gap:0;">
+
+        <!-- ── LEFT: kicker · display heading · subtitle · badges · lead ── -->
+        <div style="flex:1.1;display:flex;flex-direction:column;justify-content:center;
+                    padding-right:72px;border-right:1px solid var(--ink-20);">
+            <div class="kicker reveal" data-ed>5周在线小班课 · 6月27日开课 · 基于 Claude Code</div>
+            <div class="rule reveal mt-md"></div>
+            <h1 class="display reveal-wipe mt-md" style="text-transform:none;font-size:160px;" data-ed>AI优先<br>领导者。</h1>
+            <h2 class="h3 reveal mt-md" style="font-weight:700;" data-ed>高管 AI 进阶课程</h2>
+            <div class="reveal mt-md" style="display:flex;gap:14px;align-items:center;">
+                <span class="tag" style="font-size:15px;letter-spacing:.04em;padding:.55em 1.05em;
+                      background:var(--ink);color:var(--orange);border-color:var(--ink);" data-ed>专为领导者打造，非工程师</span>
+                <span class="tag" style="font-size:15px;letter-spacing:.04em;padding:.55em 1.05em;" data-ed>面向产品负责人、产品经理及业务领导者</span>
+            </div>
+            <p class="lead reveal mt-md" data-ed><b>在AI时代重塑自我。</b>
+                五周时间，从与AI <i>对话</i> 到<b>指挥</b>AI——覆盖您自己的工作与您领导的每支团队。</p>
+        </div>
+
+        <!-- ── RIGHT: anchor statement · MIT stats · 4 outcome pillars ── -->
+        <div style="flex:0.9;display:flex;flex-direction:column;justify-content:space-evenly;
+                    padding-left:72px;">
+
+            <!-- Bold anchor statement -->
+            <div class="reveal">
+                <p class="h2" style="font-size:52px;line-height:1.0;letter-spacing:-.01em;" data-ed>谈论AI与领导AI之间的差距，正在迅速拉大。</p>
+            </div>
+
+            <!-- MIT Technology Review stat block -->
+            <div class="reveal" style="padding-bottom:var(--gap-lg);
+                         border-bottom:1px solid var(--ink-20);">
+                <div style="display:flex;gap:24px;align-items:flex-start;margin-bottom:16px;">
+                    <div style="flex:1;">
+                        <span style="display:block;font-weight:900;font-size:96px;line-height:1;
+                                     letter-spacing:-.04em;color:var(--ink);" data-ed>67%</span>
+                        <span style="display:block;font-family:var(--font-display);font-size:16px;
+                                     letter-spacing:.02em;color:var(--ink-75);margin-top:8px;" data-ed>的组织已经在使用AI工具</span>
+                    </div>
+                    <div style="width:1px;background:var(--ink-20);align-self:stretch;flex-shrink:0;"></div>
+                    <div style="flex:1;">
+                        <span style="display:block;font-weight:900;font-size:96px;line-height:1;
+                                     letter-spacing:-.04em;color:var(--ink);" data-ed>19%</span>
+                        <span style="display:block;font-family:var(--font-display);font-size:16px;
+                                     letter-spacing:.02em;color:var(--ink-75);margin-top:8px;" data-ed>真正部署了AI智能体</span>
+                    </div>
+                </div>
+                <p style="font-family:var(--font-display);font-size:14px;line-height:1.6;
+                           letter-spacing:.02em;color:var(--ink-75);" data-ed>这个差距就是您的优势——智能体AI已成为绩效的强大倍增器。本课程助您从81%跨越到前沿。
+                    <br><span style="color:var(--ink-45);font-size:12px;">— MIT Technology Review</span></p>
+            </div>
+
+            <!-- Fear/urgency callout -->
+            <div class="reveal" style="padding:16px 0;border-bottom:1px solid var(--ink-20);">
+                <p style="font-size:18px;line-height:1.55;color:var(--ink);" data-ed>无法评估、规划或审查AI系统的行业领导者，<span style="color:var(--orange);font-weight:700;">已在产品决策中被绕开。</span></p>
+            </div>
+
+            <!-- 4 outcome pillars (wider, no-wrap) -->
+            <div class="reveal" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+                         border-top:1px solid var(--ink-20);padding-top:20px;">
+                <div style="padding-right:16px;">
+                    <span style="display:block;font-family:var(--font-mono);font-size:11px;
+                                 letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);
+                                 margin-bottom:8px;font-size:14px;" data-ed>01</span>
+                    <span style="font-weight:800;font-size:20px;line-height:1.2;color:var(--ink);
+                                 display:block;" data-ed>AI优先工作模式</span>
+                </div>
+                <div style="padding-right:16px;">
+                    <span style="display:block;font-family:var(--font-mono);font-size:11px;
+                                 letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);
+                                 margin-bottom:8px;font-size:14px;" data-ed>02</span>
+                    <span style="font-weight:800;font-size:20px;line-height:1.2;color:var(--ink);
+                                 display:block;" data-ed>拥有可运行的AI系统</span>
+                </div>
+                <div style="padding-right:16px;">
+                    <span style="display:block;font-family:var(--font-mono);font-size:11px;
+                                 letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);
+                                 margin-bottom:8px;font-size:14px;" data-ed>03</span>
+                    <span style="font-weight:800;font-size:20px;line-height:1.2;color:var(--ink);
+                                 display:block;" data-ed>绘制组织AI蓝图</span>
+                </div>
+                <div>
+                    <span style="display:block;font-family:var(--font-mono);font-size:11px;
+                                 letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);
+                                 margin-bottom:8px;font-size:14px;" data-ed>04</span>
+                    <span style="font-weight:800;font-size:20px;line-height:1.2;color:var(--ink);
+                                 display:block;" data-ed>领导技术团队</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="display:flex;justify-content:space-between;align-items:flex-end;
+                   border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);">
+        <span class="body reveal" style="color:var(--ink-75);" data-ed>Bilal Farooq · 数据科学与AI领域20年经验 · 六国从业经历</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+            <span class="kicker reveal" data-ed>$950 · 全额税前抵扣 · 面向高管及中层领导</span>
+            <span class="reveal" style="font-family:var(--font-mono);font-size:15px;letter-spacing:.08em;color:var(--orange);font-weight:600;" data-ed>名额有限！立即登记报名：bilalf@gmail.com</span>
+        </div>
+    </footer>
+</section>
+
+
+<!-- ============================================================
+     幻灯片 2 — 五周进阶
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>课程介绍</span>
+        <span data-ed>02 — 03</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>五周进阶 · 每周探索与构建内容</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;line-height:1.1;" data-ed>五周时间，从AI用户成长为AI领导者——推动您组织的AI转型。</h2>
+            <p class="body reveal mt-sm maxw" style="font-size:19px;" data-ed>第0周完成 Claude Code 配置——无需编程：您来指挥，AI来执行。每周内容层层叠加，大多数学员在前两周内便开始节省大量时间。</p>
+        </div>
+
+        <div class="week-table">
+            <!-- WEEK 1 -->
+            <div class="week-row reveal" style="transition-delay:.05s">
+                <div class="wk-num" data-ed>01</div>
+                <div class="wk-theme">
+                    <span class="lbl" data-ed>第01周 · 思维转变</span>
+                    <span class="ttl" data-ed>您的第一个智能体</span>
+                </div>
+                <div class="wk-cell explore">
+                    <span class="lbl" data-ed>探索</span>
+                    <p data-ed>从与聊天机器人对话到指挥智能体——智能体循环、"工具"是什么，以及为什么上下文是核心所在。新视角：您现在是AI劳动力的管理者。</p>
+                </div>
+                <div class="wk-cell build">
+                    <span class="lbl" data-ed>您来构建</span>
+                    <p data-ed>将您工作中一项真实的重复性任务自动化——收件箱整理、会议准备摘要、研究简报。<span class="out" data-ed>→ 收获：减少一项重复任务——全程零代码。</span></p>
+                </div>
+            </div>
+
+            <!-- WEEK 2 -->
+            <div class="week-row reveal" style="transition-delay:.12s">
+                <div class="wk-num" data-ed>02</div>
+                <div class="wk-theme">
+                    <span class="lbl" data-ed>第02周 · 知识沉淀</span>
+                    <span class="ttl" data-ed>知识接地</span>
+                </div>
+                <div class="wk-cell explore">
+                    <span class="lbl" data-ed>探索</span>
+                    <p data-ed>为什么通用模型给出通用答案。智能体如何实现"接地"——项目文件与记忆、技能和检索（RAG）。一句话解释 MCP：AI如何连接您的工具和数据。</p>
+                </div>
+                <div class="wk-cell build">
+                    <span class="lbl" data-ed>您来构建</span>
+                    <p data-ed>将 Claude 连接到您自己的文档，并赋予它对您工作方式的持久记忆。<span class="out" data-ed>→ 收获：一个了解您业务、能可靠回答业务问题的AI。</span></p>
+                </div>
+            </div>
+
+            <!-- WEEK 3 -->
+            <div class="week-row reveal" style="transition-delay:.19s">
+                <div class="wk-num" data-ed>03</div>
+                <div class="wk-theme">
+                    <span class="lbl" data-ed>第03周 · 任务编排</span>
+                    <span class="ttl" data-ed>委托与授权</span>
+                </div>
+                <div class="wk-cell explore">
+                    <span class="lbl" data-ed>探索</span>
+                    <p data-ed>编排就是管理。设计子智能体、何时委托与亲自处理、串联多步骤工作流、通过 MCP 工具赋予智能体能力，以及故障模式与人工监督节点。</p>
+                </div>
+                <div class="wk-cell build">
+                    <span class="lbl" data-ed>您来构建</span>
+                    <p data-ed>构建端到端负责某项重复工作的多步骤工作流或子智能体团队。<span class="out" data-ed>→ 收获：您的团队可以端到端运行的AI工作流。</span></p>
+                </div>
+            </div>
+
+            <!-- WEEK 4 -->
+            <div class="week-row reveal" style="transition-delay:.26s">
+                <div class="wk-num" data-ed>04</div>
+                <div class="wk-theme">
+                    <span class="lbl" data-ed>第04周 · 战略布局</span>
+                    <span class="ttl" data-ed>运营模式</span>
+                </div>
+                <div class="wk-cell explore">
+                    <span class="lbl" data-ed>探索</span>
+                    <p data-ed>从个人使用到组织杠杆——机会组合、价值×可行性优先级排序、自建与购买、ROI、风险与治理，以及如何挑战供应商和技术团队。</p>
+                </div>
+                <div class="wk-cell build">
+                    <span class="lbl" data-ed>您来构建</span>
+                    <p data-ed>您的AI优先机会地图及组织90天优先路线图。<span class="out" data-ed>→ 收获：一份站得住脚的组织级AI路线图。</span></p>
+                </div>
+            </div>
+
+            <!-- WEEK 5 -->
+            <div class="week-row reveal" style="transition-delay:.33s">
+                <div class="wk-num" data-ed>05</div>
+                <div class="wk-theme">
+                    <span class="lbl" data-ed>第05周 · 结营项目</span>
+                    <span class="ttl" data-ed>发布与认证</span>
+                </div>
+                <div class="wk-cell explore">
+                    <span class="lbl" data-ed>探索</span>
+                    <p data-ed>在高管视角下，"生产就绪"与"值得信赖"意味着什么——评估、可靠性、护栏、安全，以及何时不该自动化。如何区分真正的智能体与演示产品。</p>
+                </div>
+                <div class="wk-cell build">
+                    <span class="lbl" data-ed>您来构建</span>
+                    <p data-ed>在在线展示中完成并捍卫您的结营智能体项目。<span class="out" data-ed>→ 收获：您拥有的一款上线AI产品 + AI领导者认证。</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     幻灯片 3 — 学员评价
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>学员评价 · 来自往届学员 · 四位声音</span>
+        <span data-ed>03 — 03</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>来自往届学员 · 四位声音</div>
+            <h2 class="h2 reveal mt-md" style="font-size:62px;line-height:1.1;" data-ed>往届学员对本课程的评价。</h2>
+        </div>
+
+        <!-- 2×2 testimonial grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:0;flex:1;min-height:0;">
+
+            <!-- Milica -->
+            <div class="reveal" style="border-top:1px solid var(--ink-20);border-right:1px solid var(--ink-20);padding:22px 40px 22px 0;transition-delay:.05s">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                    <div>
+                        <span style="font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-45);" data-ed>Senior Director, Global Head of Data &amp; Analytics</span>
+                        <div style="font-weight:800;font-size:26px;line-height:1.1;color:var(--ink);margin-top:6px;" data-ed>Milica</div>
+                    </div>
+                    <div style="font-weight:900;font-size:72px;line-height:1;letter-spacing:-.04em;color:var(--orange);flex-shrink:0;margin-left:20px;" data-ed>10</div>
+                </div>
+                <p style="font-size:19px;line-height:1.6;color:var(--ink-75);" data-ed>这是一门出色的、真正达到生产级别的智能体课程。讲师平易近人、经验极为丰富，耐心十足——独特的幽默感让即便复杂的内容也变得生动有趣。课程研究扎实，知识深度令人印象深刻，实用材料丰富且立竿见影。强烈推荐给所有希望自信构建RAG系统的学员。</p>
+            </div>
+
+            <!-- Simon -->
+            <div class="reveal" style="border-top:1px solid var(--ink-20);padding:22px 0 22px 40px;transition-delay:.1s">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                    <div>
+                        <span style="font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-45);" data-ed>Head of Data Platforms and Engineering</span>
+                        <div style="font-weight:800;font-size:26px;line-height:1.1;color:var(--ink);margin-top:6px;" data-ed>Simon</div>
+                    </div>
+                    <div style="font-weight:900;font-size:72px;line-height:1;letter-spacing:-.04em;color:var(--orange);flex-shrink:0;margin-left:20px;" data-ed>9</div>
+                </div>
+                <p style="font-size:19px;line-height:1.6;color:var(--ink-75);" data-ed>强烈推荐本课程。Bilal 知识渊博，概念讲解清晰易懂。通过本课程，我对 GenAI 和 n8n 有了深入的了解和学习。</p>
+            </div>
+
+            <!-- Suretha -->
+            <div class="reveal" style="border-top:1px solid var(--ink-20);border-right:1px solid var(--ink-20);padding:22px 40px 22px 0;transition-delay:.15s">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                    <div>
+                        <span style="font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-45);" data-ed>Data Scientist</span>
+                        <div style="font-weight:800;font-size:26px;line-height:1.1;color:var(--ink);margin-top:6px;" data-ed>Suretha</div>
+                    </div>
+                    <div style="font-weight:900;font-size:72px;line-height:1;letter-spacing:-.04em;color:var(--orange);flex-shrink:0;margin-left:20px;" data-ed>10</div>
+                </div>
+                <p style="font-size:19px;line-height:1.6;color:var(--ink-75);" data-ed>在整个课程中，我对不断发展的智能体AI领域有了深刻认识。我有机会探索并使用 n8n、LangGraph、Supabase 和 Lovable 等新兴工具和框架来构建智能体系统。小班学习高度实践性和互动性，使概念应用和项目循序渐进开发都更加顺畅。</p>
+            </div>
+
+            <!-- Sophy -->
+            <div class="reveal" style="border-top:1px solid var(--ink-20);padding:22px 0 22px 40px;transition-delay:.2s">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                    <div>
+                        <span style="font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-45);" data-ed>Assistant Manager, Fine Accounting</span>
+                        <div style="font-weight:800;font-size:26px;line-height:1.1;color:var(--ink);margin-top:6px;" data-ed>Sophy</div>
+                    </div>
+                    <div style="font-weight:900;font-size:72px;line-height:1;letter-spacing:-.04em;color:var(--orange);flex-shrink:0;margin-left:20px;" data-ed>10</div>
+                </div>
+                <p style="font-size:19px;line-height:1.6;color:var(--ink-75);" data-ed>构建生产级智能体是一门出色的课程——讲师从基础带领学员，短短几小时内我们就开始构建智能体了。课程涵盖了构建智能体的所有技术方面，并深入讲解了生成式AI与大语言模型。我个人构建了一个金融市场更新智能体，大幅减少了搜索金融市场信息所需的时间。强烈推荐本课程。</p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+</main>
+</div>
+
+<!-- Presentation chrome (outside the scaled stage) -->
+<div class="deck-counter"><span class="cur" id="curNum">01</span> / <span id="totNum">02</span></div>
+<nav class="nav-dots" id="navDots" aria-label="幻灯片导航"></nav>
+
+<!-- Inline editing affordance -->
+<div class="edit-hotzone" aria-hidden="true"></div>
+<button class="edit-toggle" id="editToggle" title="编辑模式 (E)">✎</button>
+<div class="edit-hint">编辑模式 · 点击任意文字 · Ctrl+S 保存 · ⤓ 导出</div>
+
+<script>
+/* ===========================================================
+   SLIDE CONTROLLER
+   =========================================================== */
+class SlidePresentation{
+    constructor(){
+        this.stage=document.getElementById('deckStage');
+        this.slides=[...document.querySelectorAll('.slide')];
+        this.current=0;
+        this.buildDots();
+        this.setupStageScale();
+        this.setupNav();
+        this.show(0);
+    }
+    setupStageScale(){
+        const scale=()=>{
+            const f=Math.min(window.innerWidth/1920,window.innerHeight/1080);
+            const x=(window.innerWidth-1920*f)/2;
+            const y=(window.innerHeight-1080*f)/2;
+            this.stage.style.transform=`translate(${x}px,${y}px) scale(${f})`;
+        };
+        scale();
+        window.addEventListener('resize',scale);
+    }
+    buildDots(){
+        const wrap=document.getElementById('navDots');
+        this.slides.forEach((_,i)=>{
+            const b=document.createElement('button');
+            b.setAttribute('aria-label','跳转至第'+(i+1)+'页');
+            b.addEventListener('click',()=>this.show(i));
+            wrap.appendChild(b);
+        });
+        this.dots=[...wrap.children];
+        document.getElementById('totNum').textContent=String(this.slides.length).padStart(2,'0');
+    }
+    setupNav(){
+        document.addEventListener('keydown',e=>{
+            if(e.target.getAttribute&&e.target.getAttribute('contenteditable')==='true')return;
+            if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();this.next();}
+            else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.prev();}
+            else if(e.key==='Home'){this.show(0);}
+            else if(e.key==='End'){this.show(this.slides.length-1);}
+        });
+        let wheelLock=false;
+        window.addEventListener('wheel',e=>{
+            if(document.body.classList.contains('editing'))return;
+            if(wheelLock)return;
+            if(Math.abs(e.deltaY)<24)return;
+            wheelLock=true;setTimeout(()=>wheelLock=false,700);
+            e.deltaY>0?this.next():this.prev();
+        },{passive:true});
+        let sx=0,sy=0;
+        window.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+        window.addEventListener('touchend',e=>{
+            const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+            if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){dx<0?this.next():this.prev();}
+        },{passive:true});
+    }
+    show(i){
+        this.current=Math.max(0,Math.min(i,this.slides.length-1));
+        this.slides.forEach((s,n)=>{
+            s.classList.toggle('active',n===this.current);
+            s.classList.toggle('visible',n===this.current);
+        });
+        this.dots.forEach((d,n)=>d.classList.toggle('on',n===this.current));
+        document.getElementById('curNum').textContent=String(this.current+1).padStart(2,'0');
+    }
+    next(){this.show(this.current+1);}
+    prev(){this.show(this.current-1);}
+}
+
+/* ===========================================================
+   INLINE EDITOR
+   =========================================================== */
+class Editor{
+    constructor(){
+        this.isActive=false;
+        this.els=[...document.querySelectorAll('[data-ed]')];
+        this.restore();
+        this.wire();
+    }
+    key(){return 'broadside-deck-s1-zh::'+location.pathname;}
+    restore(){
+        try{
+            const saved=JSON.parse(localStorage.getItem(this.key())||'null');
+            if(saved&&Array.isArray(saved)&&saved.length===this.els.length){
+                this.els.forEach((el,i)=>{if(saved[i]!=null)el.innerHTML=saved[i];});
+            }
+        }catch(_){}
+    }
+    save(){
+        try{localStorage.setItem(this.key(),JSON.stringify(this.els.map(el=>el.innerHTML)));}catch(_){}
+    }
+    toggleEditMode(){
+        this.isActive=!this.isActive;
+        document.body.classList.toggle('editing',this.isActive);
+        document.getElementById('editToggle').classList.toggle('active',this.isActive);
+        this.els.forEach(el=>{
+            el.setAttribute('contenteditable',this.isActive?'true':'false');
+            if(this.isActive){el.addEventListener('input',this._oninput);}
+        });
+    }
+    _oninput=()=>this.save();
+    export(){
+        const clone=document.documentElement.cloneNode(true);
+        clone.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+        clone.querySelectorAll('.edit-hotzone,.edit-toggle,.edit-hint').forEach(n=>n.remove());
+        const html='<!DOCTYPE html>\n'+clone.outerHTML;
+        const blob=new Blob([html],{type:'text/html'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='ai-first-leader-broadside-sample1-zh.html';
+        a.click();
+    }
+    wire(){
+        const toggle=document.getElementById('editToggle');
+        const hotzone=document.querySelector('.edit-hotzone');
+        let hideTimeout=null;
+        toggle.addEventListener('click',()=>this.toggleEditMode());
+        hotzone.addEventListener('mouseenter',()=>{clearTimeout(hideTimeout);toggle.classList.add('show');});
+        hotzone.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        toggle.addEventListener('mouseenter',()=>clearTimeout(hideTimeout));
+        toggle.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        hotzone.addEventListener('click',()=>this.toggleEditMode());
+        document.addEventListener('keydown',e=>{
+            if((e.key==='e'||e.key==='E')&&e.target.getAttribute&&e.target.getAttribute('contenteditable')!=='true'){this.toggleEditMode();}
+            if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();this.save();this.flash('已保存');}
+            if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='e'&&this.isActive){e.preventDefault();this.export();}
+        });
+    }
+    flash(msg){
+        const hint=document.querySelector('.edit-hint');
+        if(!hint)return;const prev=hint.textContent;hint.textContent=msg.toUpperCase();
+        setTimeout(()=>hint.textContent=prev,1000);
+    }
+}
+
+const deck=new SlidePresentation();
+const editor=new Editor();
+</script>
+</body>
+</html>
