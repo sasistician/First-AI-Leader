@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 1 — Claude Code Fundamentals | The AI-First Engineer</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700;800;900&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================
+   THEME TOKENS — CORAL PALETTE (matches week0-foundations-broadside)
+   =========================================================== */
+:root{
+    --ink:#1A0D0A;
+    --ink-alt:#221210;
+    --orange:#D84D3C;
+    --cream:#FBF5F0;
+    --cream-muted:#9C8078;
+    --cream-hint:#604840;
+    --border-dark:#2C1510;
+    --ink-75:rgba(26,13,10,.75);
+    --ink-55:rgba(26,13,10,.55);
+    --ink-45:rgba(26,13,10,.45);
+    --ink-20:rgba(26,13,10,.20);
+
+    --font-display:'Barlow',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+
+    --display:184px;
+    --h1:140px;
+    --h2:86px;
+    --h3:50px;
+    --stat:104px;
+    --lead:31px;
+    --body:23px;
+    --caption:17px;
+    --label:14px;
+
+    --pad-x:106px;
+    --pad-y:62px;
+    --gap-lg:40px;
+    --gap-md:24px;
+    --gap-sm:12px;
+
+    --ease:cubic-bezier(0.16,1,0.3,1);
+    --ease-slide:cubic-bezier(0.77,0,0.175,1);
+    --stage-bg:#000;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ===========================================================
+   FIXED 16:9 STAGE (viewport-base.css contents)
+   =========================================================== */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg,#fff);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff);}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+img,video,canvas,svg{max-width:100%;max-height:100%;}
+.deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000;}
+@media print{
+    html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
+    .deck-viewport{position:static;overflow:visible;background:#fff;}
+    .deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none;}
+    .slide{position:relative;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
+    .slide:last-child{break-after:auto;page-break-after:auto;}
+    .deck-controls{display:none!important;}
+}
+@media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.2s!important;}
+}
+
+/* ===========================================================
+   SLIDE FRAME
+   =========================================================== */
+.slide{
+    display:flex;flex-direction:column;
+    padding:var(--pad-y) var(--pad-x);
+    background:#FDEAE4;color:var(--ink);
+    font-family:var(--font-display);
+}
+.slide.orange{background:#FDEAE4;color:var(--ink);}
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;}
+
+/* ===========================================================
+   CHROME
+   =========================================================== */
+.chrome{display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);}
+.chrome.top{border-bottom:1px solid var(--ink-20);padding-bottom:var(--gap-sm);}
+.chrome.bot{border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);margin-top:var(--gap-md);}
+
+/* ===========================================================
+   TYPE
+   =========================================================== */
+.kicker{font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.display{font-weight:900;font-size:var(--display);line-height:.88;letter-spacing:-.04em;text-transform:lowercase;}
+.h2{font-weight:800;font-size:var(--h2);line-height:1.02;letter-spacing:-.03em;}
+.h3{font-weight:700;font-size:var(--h3);line-height:1.08;letter-spacing:-.02em;}
+.lead{font-weight:400;font-size:var(--lead);line-height:1.45;color:var(--ink-75);}
+.body{font-size:var(--body);line-height:1.55;color:var(--ink-75);}
+
+.rule{width:36px;height:2px;background:var(--orange);border:0;}
+
+.broadside-num{font-family:var(--font-mono);font-size:22px;font-weight:500;
+    letter-spacing:.1em;color:var(--ink-45);}
+
+.tag{display:inline-block;font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);
+    border:1px solid var(--orange);padding:.4em .8em;}
+
+/* ===========================================================
+   BROADSIDE BULLET LIST
+   =========================================================== */
+.bs-list{list-style:none;}
+.bs-list li{position:relative;padding-left:1.7em;font-size:var(--lead);line-height:1.32;
+    color:var(--ink);margin-bottom:var(--gap-md);}
+.bs-list li:last-child{margin-bottom:0;}
+.bs-list li::before{content:"/";position:absolute;left:0;top:0;color:var(--orange);
+    font-family:var(--font-mono);font-weight:700;}
+.bs-list.small li{font-size:20px;line-height:1.4;}
+
+/* ===========================================================
+   OUTCOME PILLARS
+   =========================================================== */
+.outcome-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+    border-top:1px solid var(--ink-20);padding-top:20px;}
+.outcome-item{padding-right:20px;}
+.outcome-item .on{display:block;font-family:var(--font-mono);font-size:11px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);margin-bottom:6px;}
+.outcome-item .ot{font-weight:800;font-size:20px;line-height:1.1;color:var(--ink);}
+
+/* ===========================================================
+   TODAY'S MAP (cover slide, right panel)
+   =========================================================== */
+.map-list{display:flex;flex-direction:column;}
+.map-item{display:flex;gap:24px;align-items:flex-start;padding:18px 0;border-top:1px solid var(--ink-20);}
+.map-item:first-child{border-top:none;padding-top:0;}
+.map-num{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:.1em;
+    color:var(--orange);min-width:64px;flex-shrink:0;padding-top:4px;}
+.map-text .mt{font-weight:800;font-size:22px;color:var(--ink);line-height:1.2;}
+.map-text .md{font-size:15px;color:var(--ink-55);margin-top:5px;line-height:1.45;}
+
+/* ===========================================================
+   FLOW DIAGRAM / COMPARE CARDS
+   =========================================================== */
+.flow-diagram{display:flex;align-items:stretch;}
+.flow-step{flex:1;border:1px solid var(--ink-20);padding:30px 28px;display:flex;flex-direction:column;gap:12px;}
+.flow-step .fn{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.flow-step .fc{font-family:var(--font-mono);font-weight:700;font-size:30px;color:var(--ink);letter-spacing:-.01em;}
+.flow-step .ft{font-weight:800;font-size:24px;line-height:1.1;color:var(--ink);}
+.flow-step .fd{font-size:16px;line-height:1.5;color:var(--ink-55);}
+.flow-arrow{width:54px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:28px;color:var(--orange);font-weight:700;flex-shrink:0;}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;}
+
+/* ===========================================================
+   STAT SLIDE (single loop-stage emphasis)
+   =========================================================== */
+.stat-num{font-weight:900;font-size:var(--stat);line-height:.85;letter-spacing:-.03em;color:var(--orange);}
+.stat-label{font-weight:800;font-size:var(--h2);line-height:1;letter-spacing:-.03em;color:var(--ink);margin-top:8px;}
+.case-callout{border-left:3px solid var(--orange);padding:4px 0 4px 28px;}
+.case-callout .cl{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-45);margin-bottom:6px;display:block;}
+.case-callout p{font-size:18px;line-height:1.55;color:var(--ink-75);}
+
+/* ===========================================================
+   HARNESS LOOP (4-step cycle)
+   =========================================================== */
+.harness-loop{display:grid;grid-template-columns:repeat(4,1fr);gap:38px;}
+.loop-step{border-top:3px solid var(--orange);padding:26px 0 0;display:flex;flex-direction:column;gap:14px;}
+.loop-step .ln{font-weight:900;font-size:60px;line-height:1;color:var(--orange);letter-spacing:-.03em;}
+.loop-step .lt{font-weight:800;font-size:27px;line-height:1.1;color:var(--ink);}
+.loop-step .ld{font-size:17px;line-height:1.55;color:var(--ink-55);}
+.loop-cycle{text-align:center;font-family:var(--font-mono);font-size:14px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-45);padding-top:var(--gap-md);border-top:1px solid var(--ink-20);margin-top:var(--gap-md);}
+.loop-cycle b{color:var(--orange);}
+
+/* ===========================================================
+   ANATOMY TABLE (also reused for permission-modes table)
+   =========================================================== */
+.anatomy-table{display:flex;flex-direction:column;flex:1;justify-content:center;min-height:0;}
+.anatomy-row{display:grid;grid-template-columns:300px 1fr 1.15fr;gap:40px;align-items:start;
+    border-top:1px solid var(--ink-20);padding:17px 0;}
+.anatomy-row:last-child{border-bottom:1px solid var(--ink-20);}
+.anatomy-name .num{display:block;font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.anatomy-name .nm{font-weight:800;font-size:27px;line-height:1.1;color:var(--ink);}
+.anatomy-cell .lbl{display:block;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-45);margin-bottom:6px;}
+.anatomy-cell p{font-size:17px;line-height:1.5;color:var(--ink-75);}
+
+/* Spacing helpers */
+.stack>*+*{margin-top:var(--gap-md);}
+.stack-lg>*+*{margin-top:var(--gap-lg);}
+.mt-sm{margin-top:var(--gap-sm);}
+.mt-md{margin-top:var(--gap-md);}
+.mt-lg{margin-top:var(--gap-lg);}
+.maxw{max-width:62%;}
+
+/* ===========================================================
+   ANIMATIONS
+   =========================================================== */
+.reveal{opacity:0;transform:translateY(34px);
+    transition:opacity .6s var(--ease),transform .6s var(--ease);}
+.slide.visible .reveal{opacity:1;transform:none;}
+.reveal-wipe{opacity:0;clip-path:inset(0 0 100% 0);
+    transition:opacity .7s var(--ease),clip-path .9s var(--ease-slide);}
+.slide.visible .reveal-wipe{opacity:1;clip-path:inset(0 0 0 0);}
+
+/* ===========================================================
+   PRESENTATION CHROME
+   =========================================================== */
+.deck-counter{position:fixed;right:26px;bottom:22px;z-index:1000;
+    font-family:var(--font-mono);font-size:13px;letter-spacing:.16em;
+    color:rgba(251,245,240,.55);}
+.deck-counter .cur{color:var(--orange);}
+.nav-dots{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1000;
+    display:flex;gap:12px;}
+.nav-dots button{width:9px;height:9px;border-radius:50%;border:1px solid rgba(251,245,240,.4);
+    background:transparent;cursor:pointer;padding:0;transition:all .3s var(--ease);}
+.nav-dots button.on{background:var(--orange);border-color:var(--orange);transform:scale(1.15);}
+
+/* Inline editing */
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.edit-toggle{position:fixed;top:18px;left:18px;z-index:10001;width:46px;height:46px;
+    border:1px solid var(--orange);background:var(--ink);color:var(--cream);font-size:18px;
+    cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}
+.edit-toggle.active{background:var(--orange);color:var(--ink);}
+body.editing [data-ed]{outline:1px dashed rgba(216,77,60,.7);outline-offset:4px;cursor:text;}
+body.editing [data-ed]:focus{outline:1px solid var(--orange);}
+.edit-hint{position:fixed;top:18px;left:74px;z-index:10001;font-family:var(--font-mono);
+    font-size:12px;letter-spacing:.1em;color:var(--cream-muted);background:var(--ink);
+    padding:14px 12px;border:1px solid var(--border-dark);display:none;}
+body.editing .edit-hint{display:block;}
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- ============================================================
+     SLIDE 01 — COVER
+     ============================================================ -->
+<section class="slide orange active">
+    <header style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span class="broadside-num reveal" data-ed>№ 01 — 22</span>
+        <span class="broadside-num reveal" data-ed>Week 1 · Claude Code Fundamentals · 90-min live session</span>
+    </header>
+
+    <div class="slide-body" style="flex-direction:row;align-items:stretch;gap:0;">
+        <!-- LEFT: hero -->
+        <div style="flex:1.1;display:flex;flex-direction:column;justify-content:center;
+                    padding-right:72px;border-right:1px solid var(--ink-20);">
+            <div class="kicker reveal" data-ed>the ai-first engineer · claude code builder program</div>
+            <div class="rule reveal mt-md"></div>
+            <h1 class="display reveal-wipe mt-md" style="text-transform:none;" data-ed>Directing.</h1>
+            <h2 class="h3 reveal mt-md" style="font-weight:700;" data-ed>claude code fundamentals &amp; the agentic loop</h2>
+            <p class="lead reveal mt-md" data-ed>Last week: what an agent harness is, in general — the loop, tools, permissions, memory, as shared vocabulary.
+                Today: <b>Claude Code is one specific, opinionated implementation of that loop</b> — and you're going to drive it yourself, on a real task, today.</p>
+        </div>
+
+        <!-- RIGHT: today's arc -->
+        <div style="flex:0.9;display:flex;flex-direction:column;justify-content:center;
+                    padding-left:72px;">
+            <span class="kicker reveal" data-ed>today's arc · five stops</span>
+            <div class="map-list reveal mt-md">
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 1</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Claude Code as a harness</span>
+                        <span class="md" data-ed>Making last week's abstractions concrete — and grounded in a real project.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 2</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>The loop, in practice</span>
+                        <span class="md" data-ed>Perceive, plan, act, observe — and what actually governs "act."</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 3</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Permission modes</span>
+                        <span class="md" data-ed>The new layer this week — including what it costs to get wrong.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 4</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Lab: refactor, test, run</span>
+                        <span class="md" data-ed>Watch the loop happen live, on a real (deliberately messy) repo.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Reps</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Your 3 agent-shaped tasks</span>
+                        <span class="md" data-ed>What you'll run with Claude Code this week, on your own work.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="display:flex;justify-content:space-between;align-items:flex-end;
+                   border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);">
+        <span class="body reveal" style="color:var(--ink-75);" data-ed>Bilal Farooq · 20 years in data science &amp; AI · six countries</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+            <span class="kicker reveal" data-ed>carrying over from week 0</span>
+            <span class="reveal" style="font-family:var(--font-mono);font-size:15px;letter-spacing:.08em;color:var(--orange);font-weight:600;" data-ed>Claude Code installed &amp; working · your throughline problem in mind</span>
+        </div>
+    </footer>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 02 — RECAP: THE HARNESS, GENERICALLY (FROM WEEK 0)
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Recap · From Week 0</span>
+        <span data-ed>02 — 22</span>
+    </div>
+
+    <div class="slide-body" style="flex-direction:row;gap:0;align-items:stretch;">
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-right:72px;border-right:1px solid var(--ink-20);">
+            <div class="kicker reveal" data-ed>before today</div>
+            <h2 class="h2 reveal mt-md" style="font-size:54px;" data-ed>You already know what a harness is — in general.</h2>
+            <p class="body reveal mt-md" data-ed>Five components, one loop: perceive → plan → act → observe, governed by tools, context, permissions, and memory. That's the shared vocabulary from Week 0.</p>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-left:72px;">
+            <ul class="bs-list reveal">
+                <li data-ed><b>Tools</b> — what the harness can execute.</li>
+                <li data-ed><b>Context</b> — what the model can currently see.</li>
+                <li data-ed><b>Permissions</b> — what it may do unsupervised.</li>
+                <li data-ed><b>Memory</b> — what persists between sessions.</li>
+            </ul>
+            <p class="lead reveal mt-lg" data-ed>Today, all of this becomes concrete — because Claude Code is a specific instance of this pattern, not a new one.</p>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 03 — TODAY WE GET SPECIFIC (BRIDGE)
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Bridge · Part 1</span>
+        <span data-ed>03 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>from general pattern to specific tool</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:56px;" data-ed>Claude Code is one particular, opinionated implementation of that same loop.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Same five components. Same loop. But now with a specific set of tools, a specific set of permission modes, and a specific surface — your terminal, on your actual repo. Everything today makes Week 0's abstractions concrete, starting with the one distinction that changes how you use this tool at all.</p>
+        </div>
+        <p class="lead reveal" data-ed>First: <b>chatting vs. directing.</b></p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 04 — CORE DISTINCTION: CHATTING VS. DIRECTING (ABSTRACT)
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Core Distinction · Part 2</span>
+        <span data-ed>04 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>the distinction that changes everything</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>Chatting and directing look similar. They are not the same thing.</h2>
+        </div>
+
+        <div class="compare-grid reveal">
+            <div class="flow-step">
+                <span class="fn" data-ed>The shallow end</span>
+                <span class="ft" style="font-size:30px;" data-ed>Chatting</span>
+                <span class="fd" style="font-size:18px;" data-ed>One-shot Q&amp;A. You ask, it answers, and you take the output and do the work yourself. The loop happens in your head, not the tool's.</span>
+            </div>
+            <div class="flow-step" style="border-color:var(--orange);">
+                <span class="fn" style="color:var(--orange);" data-ed>The frontier</span>
+                <span class="ft" style="font-size:30px;color:var(--orange);" data-ed>Directing</span>
+                <span class="fd" style="font-size:18px;" data-ed>A bounded, multi-step task handed off. The agent runs its own perceive → plan → act → observe loop, checking in only where you've told it to.</span>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>Every week from here assumes directing. Today's lab puts you in the seat.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 05 — MADE REAL: A RAG AGENTIC SYSTEM FOR CUSTOMER SERVICE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Made Real · Part 2</span>
+        <span data-ed>05 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>a real project, not a hypothetical</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:50px;" data-ed>Building a RAG agentic system for customer service reps was never a "chat."</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>The goal: a retrieval-augmented agent that helps customer service reps answer policy and offer questions accurately. The work was days of multi-step integration — wiring into Amazon Bedrock for the underlying models, connecting to our internal deployment environment, and integrating a promotions API and other internal tools. None of that happens in one prompt-response pair.</p>
+        </div>
+
+        <ul class="bs-list small reveal">
+            <li data-ed>Read and adapted existing integration code, across multiple services.</li>
+            <li data-ed>Wrote and ran tests against the Bedrock-backed retrieval pipeline.</li>
+            <li data-ed>Iterated across files, not in one window — each step fed the next.</li>
+            <li data-ed>That's the agentic loop, running on a real system, for real stakes.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 06 — CLAUDE CODE'S HARNESS ANATOMY
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Anatomy, Made Specific · Part 1</span>
+        <span data-ed>06 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>the same five pieces, now named</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:50px;" data-ed>Here's exactly what each of Week 0's five components is, in Claude Code.</h2>
+        </div>
+
+        <div class="anatomy-table">
+            <div class="anatomy-row reveal" style="transition-delay:.04s">
+                <div class="anatomy-name"><span class="num" data-ed>01</span><span class="nm" data-ed>Model</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it is</span><p data-ed>Claude itself.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Role in the loop</span><p data-ed>Generates the "plan" step — decides which tool to call next, given everything it can currently see.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.08s">
+                <div class="anatomy-name"><span class="num" data-ed>02</span><span class="nm" data-ed>Tools</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it is</span><p data-ed>Read, Write, Edit, Bash, Grep, Glob, WebFetch, Task, TodoWrite, and more.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Role in the loop</span><p data-ed>How it actually touches your repo and the outside world — the "Act" step, for real. <code>TodoWrite</code> is also how "Plan" becomes visible to you, not just internal.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.12s">
+                <div class="anatomy-name"><span class="num" data-ed>03</span><span class="nm" data-ed>Context</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it is</span><p data-ed>CLAUDE.md, the conversation, the files it has read.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Role in the loop</span><p data-ed>The "Perceive" step — everything it currently knows about your task and your repo.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.16s">
+                <div class="anatomy-name"><span class="num" data-ed>04</span><span class="nm" data-ed>Permissions</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it is</span><p data-ed>Permission modes — default, plan, auto-accept, bypass.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Role in the loop</span><p data-ed>The guardrail on "Act" — and, as you'll see, the single most consequential piece this week.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.2s">
+                <div class="anatomy-name"><span class="num" data-ed>05</span><span class="nm" data-ed>Memory</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it is</span><p data-ed>Project-level <code>CLAUDE.md</code> in your repo root, plus user-level settings and memory under <code>~/.claude</code>.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Role in the loop</span><p data-ed>Context that outlives any one session — full depth comes in Week 2.</p></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 07 — THE LOOP, STAGE 1: PERCEIVE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Loop In Practice · Stage 1 of 4</span>
+        <span data-ed>07 — 22</span>
+    </div>
+
+    <div class="slide-body" style="flex-direction:row;gap:0;align-items:stretch;">
+        <div style="flex:0.55;display:flex;flex-direction:column;justify-content:center;padding-right:64px;border-right:1px solid var(--ink-20);">
+            <span class="stat-num reveal" data-ed>01</span>
+            <span class="stat-label reveal mt-sm" data-ed>Perceive</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:var(--gap-lg);padding-left:64px;">
+            <p class="lead reveal" data-ed>Claude Code reads your prompt, the current state of the repo, and every tool result so far — that's "perceive," every single step of the loop.</p>
+            <div class="case-callout reveal">
+                <span class="cl" data-ed>from the rag project</span>
+                <p data-ed>Perceiving meant reading existing Bedrock integration code, the internal deployment environment's config, and the promotions API's documentation — before writing a line.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 08 — THE LOOP, STAGE 2: PLAN
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Loop In Practice · Stage 2 of 4</span>
+        <span data-ed>08 — 22</span>
+    </div>
+
+    <div class="slide-body" style="flex-direction:row;gap:0;align-items:stretch;">
+        <div style="flex:0.55;display:flex;flex-direction:column;justify-content:center;padding-right:64px;border-right:1px solid var(--ink-20);">
+            <span class="stat-num reveal" data-ed>02</span>
+            <span class="stat-label reveal mt-sm" data-ed>Plan</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:var(--gap-lg);padding-left:64px;">
+            <p class="lead reveal" data-ed>It decides the next tool call — read this file? run this test? edit this function? — based entirely on what it just perceived.</p>
+            <div class="case-callout reveal">
+                <span class="cl" data-ed>from the rag project</span>
+                <p data-ed>Planning meant deciding: look at the embedding pipeline next, or the API client first? Claude Code does the same triage, every single step.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 09 — THE LOOP, STAGE 3: ACT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Loop In Practice · Stage 3 of 4</span>
+        <span data-ed>09 — 22</span>
+    </div>
+
+    <div class="slide-body" style="flex-direction:row;gap:0;align-items:stretch;">
+        <div style="flex:0.55;display:flex;flex-direction:column;justify-content:center;padding-right:64px;border-right:1px solid var(--ink-20);">
+            <span class="stat-num reveal" data-ed>03</span>
+            <span class="stat-label reveal mt-sm" data-ed>Act</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:var(--gap-lg);padding-left:64px;">
+            <p class="lead reveal" data-ed>It executes the plan for real — on disk — via Bash, Edit, Write, and every other tool. Not a suggestion in a chat bubble. A real change.</p>
+            <div class="case-callout reveal">
+                <span class="cl" data-ed>worth sitting with</span>
+                <p data-ed>This is the step where "directing" stops being a metaphor. Whatever it decided in the plan step, it now actually does — which is exactly why the next stage, and this week's permission modes, matter so much.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 10 — THE LOOP, STAGE 4: OBSERVE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Loop In Practice · Stage 4 of 4</span>
+        <span data-ed>10 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div style="display:flex;flex-direction:row;gap:0;align-items:stretch;">
+            <div style="flex:0.55;display:flex;flex-direction:column;justify-content:center;padding-right:64px;border-right:1px solid var(--ink-20);">
+                <span class="stat-num reveal" data-ed>04</span>
+                <span class="stat-label reveal mt-sm" data-ed>Observe</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:var(--gap-lg);padding-left:64px;">
+                <p class="lead reveal" data-ed>The result of the action — a test pass, a test fail, a file's new contents — becomes new context. The loop repeats with that new information already perceived.</p>
+            </div>
+        </div>
+        <div class="loop-cycle reveal" data-ed><b>↻</b> perceive → plan → act → observe → repeats until the task is done</div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 11 — PERMISSION MODES, THE MENU
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Permission Modes · The New Layer</span>
+        <span data-ed>11 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>what governs "act"</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>Four modes, four very different amounts of friction.</h2>
+        </div>
+
+        <div class="anatomy-table">
+            <div class="anatomy-row reveal" style="transition-delay:.04s">
+                <div class="anatomy-name"><span class="num" data-ed>Default</span><span class="nm" style="font-size:22px;" data-ed>Ask before each write</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What happens</span><p data-ed>Every file edit or risky command pauses for your approval, one at a time.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Good for / tradeoff</span><p data-ed>Unfamiliar code, high-stakes changes. Safer, slower.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.08s">
+                <div class="anatomy-name"><span class="num" data-ed>Plan mode</span><span class="nm" style="font-size:22px;" data-ed>Propose, then approve</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What happens</span><p data-ed>Claude lays out its full approach before taking any action at all.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Good for / tradeoff</span><p data-ed>Multi-step or ambiguous tasks. One review instead of many — but you must actually read the plan.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.12s">
+                <div class="anatomy-name"><span class="num" data-ed>Auto-accept edits</span><span class="nm" style="font-size:22px;" data-ed>Apply, review after</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What happens</span><p data-ed>Edits apply immediately; you review the diff afterward instead of approving each one.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Good for / tradeoff</span><p data-ed>Fast iteration on trusted ground. Fast — until you stop actually reviewing.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.16s">
+                <div class="anatomy-name"><span class="num" data-ed>Bypass permissions</span><span class="nm" style="font-size:22px;" data-ed>Nothing pauses</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What happens</span><p data-ed>The full loop runs unattended, start to finish. Invoked separately from the other three — a startup flag, not something you cycle into mid-session.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Good for / tradeoff</span><p data-ed>Sandboxes, low-stakes batch work. Highest leverage, highest blast radius.</p></div>
+            </div>
+        </div>
+        <p class="lead reveal mt-md" data-ed>The first three are something you cycle through during a session. Bypass is a separate, riskier switch you choose deliberately, up front.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 12 — PERMISSION MODES, WHEN IT GOES WRONG (WAR STORY)
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Permission Modes · The Real Cost</span>
+        <span data-ed>12 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>a real cost, not a hypothetical</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:48px;" data-ed>Auto-accepting without paying attention once cost us a working RAG system.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>On that same customer-service RAG project, the habit was to auto-accept edits and document ingestion without closely reviewing each one. At one point, that habit let outdated, since-superseded policy documents get ingested into the knowledge base. Nobody caught it until accuracy had already degraded — the fix meant rolling back to a previous working version and redoing real work.</p>
+        </div>
+        <p class="body reveal maxw" style="font-size:17px;color:var(--ink-55);" data-ed>To be precise: that auto-approval was in the ingestion pipeline, not Claude Code's own permission modes — a different system, a different failure surface. A bad code edit shows up in <code>git diff</code>; a bad document in a knowledge base usually doesn't, until the answers get worse. But the habit that caused it — approving without actually looking — is exactly the habit Claude Code's permission modes let you build or break.</p>
+        <p class="lead reveal" data-ed>The setting wasn't the problem. <b>Using it without attention was.</b></p>
+        <span class="tag reveal" data-ed>permission modes aren't a settings choice — they're a habit you build</span>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 13 — TERMINAL AS LEVERAGE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Terminal-As-Leverage</span>
+        <span data-ed>13 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>why the terminal, not a chat window</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>The terminal is the highest-leverage surface for directing an agent.</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Multi-file edits, applied in one pass, not copy-pasted one at a time.</li>
+            <li data-ed>Real test suites, actually run — not described, executed.</li>
+            <li data-ed>Git, actually committed — history you can inspect and revert.</li>
+            <li data-ed>Composed with every other CLI tool you already use.</li>
+        </ul>
+
+        <div class="case-callout reveal">
+            <span class="cl" data-ed>the polyglot problem this solves</span>
+            <p data-ed>Different products often require different languages and environments — C here, Java there, Python somewhere else. Claude Code works the same way regardless: one harness, not per-language tooling.</p>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 14 — WHEN THE ASK ISN'T FULLY SPELLED OUT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Discovery Work</span>
+        <span data-ed>14 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>not every task starts with a clear spec</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>Sometimes integrating with an existing environment means discovery before action.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>When the instructions for plugging into an existing system aren't fully spelled out, part of directing the agent is letting it explore first — read the code, check how things are wired — before it gets to the part that produces output.</p>
+        </div>
+        <p class="lead reveal" data-ed>That's not a sign you picked the wrong task. It's normal. Watch for it in today's lab, and again in your own reps this week.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 15 — LAB PREVIEW
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Lab Preview · Part 4</span>
+        <span data-ed>15 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>now it's your turn</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>Refactor it. Write tests. Run them. Watch the loop happen live.</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>A real, deliberately messy random-forest churn-prediction script.</li>
+            <li data-ed>No structure, no tests — but it runs, and gives a sane result, as-is.</li>
+            <li data-ed>Your job: direct Claude Code through cleaning it up and proving it still works.</li>
+            <li data-ed>Watch for: which tool fires, when it asks permission, how context carries forward.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 16 — LAB WALKTHROUGH, STEP 1: GIVE THE TASK
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Lab Walkthrough · Step 1 of 4</span>
+        <span data-ed>16 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>hand off the task</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>One direction, not a back-and-forth chat.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Open <code>week1-lab-repo/churn_model.py</code> and give Claude Code the whole task at once: refactor into clean, well-named functions, then write tests for the core prediction logic.</p>
+        </div>
+        <p class="lead reveal" data-ed>This is the handoff moment — from here, the agent runs its own loop.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 17 — LAB WALKTHROUGH, STEP 2: PERCEIVE & PLAN
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Lab Walkthrough · Step 2 of 4</span>
+        <span data-ed>17 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>watch, don't just wait</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>Watch it perceive and plan — not once, but on repeat.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>It reads the file and sketches an approach before the first edit — but on a real refactor, it doesn't stop there. It keeps re-reading and re-planning between edits: check a function, write it, re-check the next one, adjust. Perceive and plan recur continuously through the whole task, not just once at the start.</p>
+        </div>
+        <p class="lead reveal" data-ed>If you only look at the final diff, you miss the part that's actually new this week.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 18 — LAB WALKTHROUGH, STEP 3: PERMISSION MODES LIVE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Lab Walkthrough · Step 3 of 4</span>
+        <span data-ed>18 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>on purpose, this time</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>Try a different permission mode mid-task — deliberately.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Redo a slice of the task under a mode you didn't start with. Notice exactly what changes in how the loop feels — not just whether it worked.</p>
+        </div>
+        <p class="lead reveal" data-ed>This is the moment slide 12's habit becomes a choice you're making on purpose, not a default you've stopped noticing.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 19 — LAB WALKTHROUGH, STEP 4: VERIFY GREEN
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Lab Walkthrough · Step 4 of 4</span>
+        <span data-ed>19 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>close the loop</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>Run the tests. Confirm green. Notice if it self-corrected.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Run the new tests and the script itself. If a test failed at first, watch what happens next — did it read the failure and fix it before telling you it was done?</p>
+        </div>
+        <p class="lead reveal" data-ed>That self-correction <i>is</i> the observe step, doing exactly what it's supposed to do.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 20 — YOUR TURN: OPEN THE LAB GUIDE
+     ============================================================ -->
+<section class="slide orange">
+    <div class="chrome top">
+        <span data-ed>Your Turn</span>
+        <span data-ed>20 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <span class="kicker reveal" data-ed>go</span>
+            <h1 class="display reveal-wipe mt-md" style="font-size:140px;text-transform:none;" data-ed>Open the lab guide.</h1>
+        </div>
+        <ul class="bs-list reveal">
+            <li data-ed>Run the task — refactor + write tests + run them.</li>
+            <li data-ed>Switch permission modes — deliberately, mid-task.</li>
+            <li data-ed>Observe the loop — perceive, plan, act, observe, on repeat.</li>
+        </ul>
+        <p class="lead reveal" data-ed>~35–40 minutes. Then we regroup.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 21 — APPLY: FIND 3 AGENT-SHAPED TASKS
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Apply · Your Reps</span>
+        <span data-ed>21 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>your reps this week</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>Find 3 agent-shaped tasks in your own work.</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>Repeatable pattern</b> — not a one-off.</li>
+            <li data-ed><b>Bounded</b> — you can describe "done" in a sentence.</li>
+            <li data-ed><b>Verifiable</b> — you, or a test, can check whether it worked.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Run at least one with Claude Code before next session. Some of your 3 may need discovery first — that's fine, direct it anyway.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 22 — OUTCOME + LOOKING AHEAD TO WEEK 2
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Looking Ahead</span>
+        <span data-ed>22 — 22</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>what you now know · what's next</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>You've directed Claude Code through a real multi-step task. Next: making it know your world.</h2>
+        </div>
+
+        <div class="reveal">
+            <span class="kicker" data-ed>today's takeaways</span>
+            <div class="outcome-grid mt-md" style="grid-template-columns:repeat(3,1fr);">
+                <div class="outcome-item">
+                    <span class="on" data-ed>fluency</span>
+                    <span class="ot" data-ed>comfortable directing Claude Code through multi-step dev tasks</span>
+                </div>
+                <div class="outcome-item">
+                    <span class="on" data-ed>vocabulary, in practice</span>
+                    <span class="ot" data-ed>the loop and permission modes, made concrete on a real repo</span>
+                </div>
+                <div class="outcome-item">
+                    <span class="on" data-ed>your 3 reps</span>
+                    <span class="ot" data-ed>real agent-shaped tasks, queued for this week</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="reveal" style="background:var(--orange);color:var(--ink);
+                     margin:0 calc(-1 * var(--pad-x));padding:30px var(--pad-x);
+                     display:flex;align-items:center;gap:48px;">
+            <span style="font-weight:900;font-size:56px;line-height:1;letter-spacing:-.03em;white-space:nowrap;" data-ed>Week 2 →</span>
+            <p style="font-size:var(--body);line-height:1.4;color:var(--ink-75);" data-ed><b style="color:var(--ink);">Context Engineering: Memory, CLAUDE.md &amp; RAG.</b> Grounding the agent in your own world — so it stops giving generic answers about your specific project.</p>
+        </div>
+    </div>
+</section>
+
+</main>
+</div>
+
+<!-- Presentation chrome (outside the scaled stage) -->
+<div class="deck-counter"><span class="cur" id="curNum">01</span> / <span id="totNum">22</span></div>
+<nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+<!-- Inline editing affordance -->
+<div class="edit-hotzone" aria-hidden="true"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">✎</button>
+<div class="edit-hint">EDIT MODE · click any text · Ctrl+S saves · ⤓ exports</div>
+
+<script>
+/* ===========================================================
+   SLIDE CONTROLLER
+   =========================================================== */
+class SlidePresentation{
+    constructor(){
+        this.stage=document.getElementById('deckStage');
+        this.slides=[...document.querySelectorAll('.slide')];
+        this.current=0;
+        this.buildDots();
+        this.setupStageScale();
+        this.setupNav();
+        this.show(0);
+    }
+    setupStageScale(){
+        const scale=()=>{
+            const f=Math.min(window.innerWidth/1920,window.innerHeight/1080);
+            const x=(window.innerWidth-1920*f)/2;
+            const y=(window.innerHeight-1080*f)/2;
+            this.stage.style.transform=`translate(${x}px,${y}px) scale(${f})`;
+        };
+        scale();
+        window.addEventListener('resize',scale);
+    }
+    buildDots(){
+        const wrap=document.getElementById('navDots');
+        this.slides.forEach((_,i)=>{
+            const b=document.createElement('button');
+            b.setAttribute('aria-label','Go to slide '+(i+1));
+            b.addEventListener('click',()=>this.show(i));
+            wrap.appendChild(b);
+        });
+        this.dots=[...wrap.children];
+        document.getElementById('totNum').textContent=String(this.slides.length).padStart(2,'0');
+    }
+    setupNav(){
+        document.addEventListener('keydown',e=>{
+            if(e.target.getAttribute&&e.target.getAttribute('contenteditable')==='true')return;
+            if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();this.next();}
+            else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.prev();}
+            else if(e.key==='Home'){this.show(0);}
+            else if(e.key==='End'){this.show(this.slides.length-1);}
+        });
+        let wheelLock=false;
+        window.addEventListener('wheel',e=>{
+            if(document.body.classList.contains('editing'))return;
+            if(wheelLock)return;
+            if(Math.abs(e.deltaY)<24)return;
+            wheelLock=true;setTimeout(()=>wheelLock=false,700);
+            e.deltaY>0?this.next():this.prev();
+        },{passive:true});
+        let sx=0,sy=0;
+        window.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+        window.addEventListener('touchend',e=>{
+            const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+            if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){dx<0?this.next():this.prev();}
+        },{passive:true});
+    }
+    show(i){
+        this.current=Math.max(0,Math.min(i,this.slides.length-1));
+        this.slides.forEach((s,n)=>{
+            s.classList.toggle('active',n===this.current);
+            s.classList.toggle('visible',n===this.current);
+        });
+        this.dots.forEach((d,n)=>d.classList.toggle('on',n===this.current));
+        document.getElementById('curNum').textContent=String(this.current+1).padStart(2,'0');
+    }
+    next(){this.show(this.current+1);}
+    prev(){this.show(this.current-1);}
+}
+
+/* ===========================================================
+   INLINE EDITOR
+   =========================================================== */
+class Editor{
+    constructor(){
+        this.isActive=false;
+        this.els=[...document.querySelectorAll('[data-ed]')];
+        this.restore();
+        this.wire();
+    }
+    key(){return 'broadside-deck-week1::'+location.pathname;}
+    restore(){
+        try{
+            const saved=JSON.parse(localStorage.getItem(this.key())||'null');
+            if(saved&&Array.isArray(saved)&&saved.length===this.els.length){
+                this.els.forEach((el,i)=>{if(saved[i]!=null)el.innerHTML=saved[i];});
+            }
+        }catch(_){}
+    }
+    save(){
+        try{localStorage.setItem(this.key(),JSON.stringify(this.els.map(el=>el.innerHTML)));}catch(_){}
+    }
+    toggleEditMode(){
+        this.isActive=!this.isActive;
+        document.body.classList.toggle('editing',this.isActive);
+        document.getElementById('editToggle').classList.toggle('active',this.isActive);
+        this.els.forEach(el=>{
+            el.setAttribute('contenteditable',this.isActive?'true':'false');
+            if(this.isActive){el.addEventListener('input',this._oninput);}
+        });
+    }
+    _oninput=()=>this.save();
+    export(){
+        const clone=document.documentElement.cloneNode(true);
+        clone.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+        clone.querySelectorAll('.edit-hotzone,.edit-toggle,.edit-hint').forEach(n=>n.remove());
+        const html='<!DOCTYPE html>\n'+clone.outerHTML;
+        const blob=new Blob([html],{type:'text/html'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='week1-claude-code-fundamentals-broadside.html';
+        a.click();
+    }
+    wire(){
+        const toggle=document.getElementById('editToggle');
+        const hotzone=document.querySelector('.edit-hotzone');
+        let hideTimeout=null;
+        toggle.addEventListener('click',()=>this.toggleEditMode());
+        hotzone.addEventListener('mouseenter',()=>{clearTimeout(hideTimeout);toggle.classList.add('show');});
+        hotzone.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        toggle.addEventListener('mouseenter',()=>clearTimeout(hideTimeout));
+        toggle.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        hotzone.addEventListener('click',()=>this.toggleEditMode());
+        document.addEventListener('keydown',e=>{
+            if((e.key==='e'||e.key==='E')&&e.target.getAttribute&&e.target.getAttribute('contenteditable')!=='true'){this.toggleEditMode();}
+            if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();this.save();this.flash('saved');}
+            if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='e'&&this.isActive){e.preventDefault();this.export();}
+        });
+    }
+    flash(msg){
+        const hint=document.querySelector('.edit-hint');
+        if(!hint)return;const prev=hint.textContent;hint.textContent=msg.toUpperCase();
+        setTimeout(()=>hint.textContent=prev,1000);
+    }
+}
+
+const deck=new SlidePresentation();
+const editor=new Editor();
+</script>
+</body>
+</html>
