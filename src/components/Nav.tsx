@@ -33,6 +33,12 @@ export default function Nav() {
           >
             About
           </button>
+          <button
+            onClick={() => scrollToSection('instructor')}
+            className="text-white/80 hover:text-white transition-colors text-sm font-medium"
+          >
+            Instructor
+          </button>
         </div>
 
         <Link

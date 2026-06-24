@@ -27,6 +27,8 @@ src/
 │   ├── ProgramSection.tsx  #program — 5-week curriculum cards
 │   ├── WeeksSection.tsx    #weeks — links to /weeks/wN_english.html / wN_mandarin.html decks
 │   ├── AboutSection.tsx    #about — course description
+│   ├── WhySection.tsx      #why — chat-vs-direct before/after contrast cards
+│   ├── InstructorSection.tsx #instructor — instructor bio with headshot photo
 │   └── Footer.tsx           social icons: GitHub, email, LinkedIn
 ├── pages/
 │   ├── Home.tsx     composes all homepage sections
@@ -34,6 +36,8 @@ src/
 └── index.css         liquid-glass design system + Instrument Serif import
 
 public/
+├── images/
+│   └── bilal-farooq.jpg   instructor headshot, used by InstructorSection.tsx
 └── weeks/
     └── w0_english.html   session decks (standalone HTML "broadside" slides)
 
