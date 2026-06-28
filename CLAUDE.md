@@ -78,4 +78,3 @@ Headings use the "Instrument Serif" Google Font (imported in `index.css`), appli
 - About section copy is placeholder — refine with real instructor/course bio
 - Registration form (`src/pages/Register.tsx`) posts to Formspree
   (`https://formspree.io/f/mwvjabzb`, delivers to bilalf@gmail.com)
-- Mandarin decks not yet added for any week (w0_mandarin.html etc.)

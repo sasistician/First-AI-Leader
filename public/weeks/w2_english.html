@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 2 — Context Engineering | The AI-First Engineer</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700;800;900&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================
+   THEME TOKENS — CORAL PALETTE (matches week0/week1 broadside)
+   =========================================================== */
+:root{
+    --ink:#1A0D0A;
+    --ink-alt:#221210;
+    --orange:#D84D3C;
+    --cream:#FBF5F0;
+    --cream-muted:#9C8078;
+    --cream-hint:#604840;
+    --border-dark:#2C1510;
+    --ink-75:rgba(26,13,10,.75);
+    --ink-55:rgba(26,13,10,.55);
+    --ink-45:rgba(26,13,10,.45);
+    --ink-20:rgba(26,13,10,.20);
+
+    --font-display:'Barlow',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+
+    --display:184px;
+    --h1:140px;
+    --h2:86px;
+    --h3:50px;
+    --stat:104px;
+    --lead:31px;
+    --body:23px;
+    --caption:17px;
+    --label:14px;
+
+    --pad-x:106px;
+    --pad-y:62px;
+    --gap-lg:40px;
+    --gap-md:24px;
+    --gap-sm:12px;
+
+    --ease:cubic-bezier(0.16,1,0.3,1);
+    --ease-slide:cubic-bezier(0.77,0,0.175,1);
+    --stage-bg:#000;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ===========================================================
+   FIXED 16:9 STAGE (viewport-base.css contents)
+   =========================================================== */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg,#fff);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff);}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+img,video,canvas,svg{max-width:100%;max-height:100%;}
+.deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000;}
+@media print{
+    html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
+    .deck-viewport{position:static;overflow:visible;background:#fff;}
+    .deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none;}
+    .slide{position:relative;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
+    .slide:last-child{break-after:auto;page-break-after:auto;}
+    .deck-controls{display:none!important;}
+}
+@media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.2s!important;}
+}
+
+/* ===========================================================
+   SLIDE FRAME
+   =========================================================== */
+.slide{
+    display:flex;flex-direction:column;
+    padding:var(--pad-y) var(--pad-x);
+    background:#FDEAE4;color:var(--ink);
+    font-family:var(--font-display);
+}
+.slide.orange{background:#FDEAE4;color:var(--ink);}
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;}
+
+/* ===========================================================
+   CHROME
+   =========================================================== */
+.chrome{display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);}
+.chrome.top{border-bottom:1px solid var(--ink-20);padding-bottom:var(--gap-sm);}
+.chrome.bot{border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);margin-top:var(--gap-md);}
+
+/* ===========================================================
+   TYPE
+   =========================================================== */
+.kicker{font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.display{font-weight:900;font-size:var(--display);line-height:.88;letter-spacing:-.04em;text-transform:lowercase;}
+.h2{font-weight:800;font-size:var(--h2);line-height:1.02;letter-spacing:-.03em;}
+.h3{font-weight:700;font-size:var(--h3);line-height:1.08;letter-spacing:-.02em;}
+.lead{font-weight:400;font-size:var(--lead);line-height:1.45;color:var(--ink-75);}
+.body{font-size:var(--body);line-height:1.55;color:var(--ink-75);}
+
+.rule{width:36px;height:2px;background:var(--orange);border:0;}
+
+.broadside-num{font-family:var(--font-mono);font-size:22px;font-weight:500;
+    letter-spacing:.1em;color:var(--ink-45);}
+
+.tag{display:inline-block;font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);
+    border:1px solid var(--orange);padding:.4em .8em;}
+
+/* ===========================================================
+   BROADSIDE BULLET LIST
+   =========================================================== */
+.bs-list{list-style:none;}
+.bs-list li{position:relative;padding-left:1.7em;font-size:var(--lead);line-height:1.32;
+    color:var(--ink);margin-bottom:var(--gap-md);}
+.bs-list li:last-child{margin-bottom:0;}
+.bs-list li::before{content:"/";position:absolute;left:0;top:0;color:var(--orange);
+    font-family:var(--font-mono);font-weight:700;}
+.bs-list.small li{font-size:20px;line-height:1.4;}
+
+/* ===========================================================
+   OUTCOME PILLARS
+   =========================================================== */
+.outcome-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+    border-top:1px solid var(--ink-20);padding-top:20px;}
+.outcome-item{padding-right:20px;}
+.outcome-item .on{display:block;font-family:var(--font-mono);font-size:11px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);margin-bottom:6px;}
+.outcome-item .ot{font-weight:800;font-size:20px;line-height:1.1;color:var(--ink);}
+
+/* ===========================================================
+   TODAY'S MAP (cover slide, right panel) / decision lists
+   =========================================================== */
+.map-list{display:flex;flex-direction:column;}
+.map-item{display:flex;gap:24px;align-items:flex-start;padding:18px 0;border-top:1px solid var(--ink-20);}
+.map-item:first-child{border-top:none;padding-top:0;}
+.map-num{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:.1em;
+    color:var(--orange);min-width:64px;flex-shrink:0;padding-top:4px;}
+.map-text .mt{font-weight:800;font-size:22px;color:var(--ink);line-height:1.2;}
+.map-text .md{font-size:15px;color:var(--ink-55);margin-top:5px;line-height:1.45;}
+
+/* ===========================================================
+   FLOW DIAGRAM / COMPARE CARDS
+   =========================================================== */
+.flow-diagram{display:flex;align-items:stretch;}
+.flow-step{flex:1;border:1px solid var(--ink-20);padding:30px 28px;display:flex;flex-direction:column;gap:12px;}
+.flow-step .fn{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.flow-step .fc{font-family:var(--font-mono);font-weight:700;font-size:30px;color:var(--ink);letter-spacing:-.01em;}
+.flow-step .ft{font-weight:800;font-size:24px;line-height:1.1;color:var(--ink);}
+.flow-step .fd{font-size:16px;line-height:1.5;color:var(--ink-55);}
+.flow-arrow{width:54px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:28px;color:var(--orange);font-weight:700;flex-shrink:0;}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;}
+
+/* ===========================================================
+   CASE CALLOUT / STAT
+   =========================================================== */
+.stat-num{font-weight:900;font-size:var(--stat);line-height:.85;letter-spacing:-.03em;color:var(--orange);}
+.stat-label{font-weight:800;font-size:var(--h2);line-height:1;letter-spacing:-.03em;color:var(--ink);margin-top:8px;}
+.case-callout{border-left:3px solid var(--orange);padding:4px 0 4px 28px;}
+.case-callout .cl{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-45);margin-bottom:6px;display:block;}
+.case-callout p{font-size:18px;line-height:1.55;color:var(--ink-75);}
+
+/* ===========================================================
+   ANATOMY TABLE
+   =========================================================== */
+.anatomy-table{display:flex;flex-direction:column;flex:1;justify-content:center;min-height:0;}
+.anatomy-row{display:grid;grid-template-columns:300px 1fr 1.15fr;gap:40px;align-items:start;
+    border-top:1px solid var(--ink-20);padding:17px 0;}
+.anatomy-row:last-child{border-bottom:1px solid var(--ink-20);}
+.anatomy-name .num{display:block;font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.anatomy-name .nm{font-weight:800;font-size:27px;line-height:1.1;color:var(--ink);}
+.anatomy-cell .lbl{display:block;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-45);margin-bottom:6px;}
+.anatomy-cell p{font-size:17px;line-height:1.5;color:var(--ink-75);}
+
+/* ===========================================================
+   THREE-COLUMN ARCHITECTURE / LAYER COMPARISON
+   =========================================================== */
+.arch-diagram{display:flex;align-items:stretch;}
+.arch-col{flex:1;border:1px solid var(--ink-20);padding:30px 34px;display:flex;flex-direction:column;gap:16px;}
+.arch-col .ac-title{font-family:var(--font-mono);font-size:13px;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--orange);}
+.arch-layer{border-top:2px solid var(--ink-20);padding:14px 0 0;}
+.arch-layer.attn{border-color:var(--orange);}
+.arch-layer .al-name{font-weight:800;font-size:20px;color:var(--ink);line-height:1.15;}
+.arch-layer .al-desc{font-size:14px;line-height:1.4;color:var(--ink-55);margin-top:4px;}
+.arch-col .ac-x{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;color:var(--ink-45);
+    text-transform:uppercase;text-align:center;padding-top:6px;}
+
+/* ===========================================================
+   CONTEXT WINDOW BUDGET BAR
+   =========================================================== */
+.ctx-budget-bar{display:flex;width:100%;height:84px;border:1px solid var(--ink-20);}
+.ctx-budget-seg{display:flex;flex-direction:column;justify-content:center;padding:0 22px;
+    border-right:1px solid var(--cream);overflow:hidden;}
+.ctx-budget-seg:last-child{border-right:none;}
+.ctx-budget-seg .cbs-pct{font-family:var(--font-mono);font-weight:700;font-size:22px;}
+.ctx-budget-seg .cbs-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;margin-top:3px;white-space:nowrap;}
+.ctx-budget-legend{display:flex;gap:34px;margin-top:20px;flex-wrap:wrap;}
+.ctx-budget-legend .cbl-item{display:flex;align-items:flex-start;gap:10px;max-width:280px;}
+.ctx-budget-legend .cbl-dot{width:12px;height:12px;flex-shrink:0;margin-top:4px;}
+.ctx-budget-legend .cbl-text{font-size:14.5px;color:var(--ink-55);line-height:1.35;}
+.ctx-budget-legend .cbl-text b{color:var(--ink);}
+
+/* Spacing helpers */
+.stack>*+*{margin-top:var(--gap-md);}
+.stack-lg>*+*{margin-top:var(--gap-lg);}
+.mt-sm{margin-top:var(--gap-sm);}
+.mt-md{margin-top:var(--gap-md);}
+.mt-lg{margin-top:var(--gap-lg);}
+.maxw{max-width:62%;}
+
+/* ===========================================================
+   ANIMATIONS
+   =========================================================== */
+.reveal{opacity:0;transform:translateY(34px);
+    transition:opacity .6s var(--ease),transform .6s var(--ease);}
+.slide.visible .reveal{opacity:1;transform:none;}
+.reveal-wipe{opacity:0;clip-path:inset(0 0 100% 0);
+    transition:opacity .7s var(--ease),clip-path .9s var(--ease-slide);}
+.slide.visible .reveal-wipe{opacity:1;clip-path:inset(0 0 0 0);}
+
+/* ===========================================================
+   PRESENTATION CHROME
+   =========================================================== */
+.deck-counter{position:fixed;right:26px;bottom:22px;z-index:1000;
+    font-family:var(--font-mono);font-size:13px;letter-spacing:.16em;
+    color:rgba(251,245,240,.55);}
+.deck-counter .cur{color:var(--orange);}
+.nav-dots{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1000;
+    display:flex;gap:12px;}
+.nav-dots button{width:9px;height:9px;border-radius:50%;border:1px solid rgba(251,245,240,.4);
+    background:transparent;cursor:pointer;padding:0;transition:all .3s var(--ease);}
+.nav-dots button.on{background:var(--orange);border-color:var(--orange);transform:scale(1.15);}
+
+/* Inline editing */
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.edit-toggle{position:fixed;top:18px;left:18px;z-index:10001;width:46px;height:46px;
+    border:1px solid var(--orange);background:var(--ink);color:var(--cream);font-size:18px;
+    cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}
+.edit-toggle.active{background:var(--orange);color:var(--ink);}
+body.editing [data-ed]{outline:1px dashed rgba(216,77,60,.7);outline-offset:4px;cursor:text;}
+body.editing [data-ed]:focus{outline:1px solid var(--orange);}
+.edit-hint{position:fixed;top:18px;left:74px;z-index:10001;font-family:var(--font-mono);
+    font-size:12px;letter-spacing:.1em;color:var(--cream-muted);background:var(--ink);
+    padding:14px 12px;border:1px solid var(--border-dark);display:none;}
+body.editing .edit-hint{display:block;}
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- ============================================================
+     SLIDE 01 — COVER
+     ============================================================ -->
+<section class="slide orange active">
+    <header style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span class="broadside-num reveal" data-ed>№ 01 — 21</span>
+        <span class="broadside-num reveal" data-ed>Week 2 · Context Engineering · 90-min live session</span>
+    </header>
+
+    <div class="slide-body" style="flex-direction:row;align-items:stretch;gap:0;">
+        <!-- LEFT: hero -->
+        <div style="flex:1.1;display:flex;flex-direction:column;justify-content:center;
+                    padding-right:72px;border-right:1px solid var(--ink-20);">
+            <div class="kicker reveal" data-ed>the ai-first engineer · claude code builder program</div>
+            <div class="rule reveal mt-md"></div>
+            <h1 class="display reveal-wipe mt-md" style="text-transform:none;" data-ed>Grounding.</h1>
+            <h2 class="h3 reveal mt-md" style="font-weight:700;" data-ed>context engineering · memory, claude.md &amp; rag</h2>
+            <p class="lead reveal mt-md" data-ed>Last week was about directing the loop. This week is about what's inside it —
+                <b>the difference between an agent that's grounded in your world and one that's just guessing.</b>
+                Same model, same loop, wildly different output — and the gap is entirely closeable.</p>
+        </div>
+
+        <!-- RIGHT: today's arc -->
+        <div style="flex:0.9;display:flex;flex-direction:column;justify-content:center;
+                    padding-left:72px;">
+            <span class="kicker reveal" data-ed>today's arc · five stops</span>
+            <div class="map-list reveal mt-md">
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 1</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>The problem</span>
+                        <span class="md" data-ed>Why grounding — or its absence — decides whether output is generic or genuinely useful.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 2</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Three layers of grounding</span>
+                        <span class="md" data-ed>CLAUDE.md, memory, and RAG — what each one is for, and when to reach for it.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 3</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Context debt</span>
+                        <span class="md" data-ed>Naming the gap between what your agent needs to know and what's actually grounded.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 4</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Lab: grounding "Ledger"</span>
+                        <span class="md" data-ed>Write a real CLAUDE.md, set up persistent memory, and point Claude at existing docs.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Apply</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Audit your own project</span>
+                        <span class="md" data-ed>Find your biggest context gap this week — and start closing it.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="display:flex;justify-content:space-between;align-items:flex-end;
+                   border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);">
+        <span class="body reveal" style="color:var(--ink-75);" data-ed>Bilal Farooq · 20 years in data science &amp; AI · six countries</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+            <span class="kicker reveal" data-ed>carrying over from week 1</span>
+            <span class="reveal" style="font-family:var(--font-mono);font-size:15px;letter-spacing:.08em;color:var(--orange);font-weight:600;" data-ed>Claude Code installed &amp; directing comfortably · your throughline problem in mind</span>
+        </div>
+    </footer>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 02 — RECAP: FROM WEEK 1
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Recap · From Week 1</span>
+        <span data-ed>02 — 21</span>
+    </div>
+
+    <div class="slide-body" style="flex-direction:row;gap:0;align-items:stretch;">
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-right:72px;border-right:1px solid var(--ink-20);">
+            <div class="kicker reveal" data-ed>before today</div>
+            <h2 class="h2 reveal mt-md" style="font-size:54px;" data-ed>Last week was about the loop. This week is about what's in it.</h2>
+            <p class="body reveal mt-md" data-ed>You learned to direct Claude Code through perceive → plan → act → observe, across permission modes, on real, messy code. The loop worked — but you've probably already noticed something: point that same loop at two different projects and you get wildly different quality of output. Sometimes Claude "just gets it." Sometimes you're re-explaining the same conventions every single session.</p>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-left:72px;">
+            <ul class="bs-list reveal">
+                <li data-ed>The loop is the mechanism. It runs the same way regardless of project.</li>
+                <li data-ed>What changes is what the model has to work with when it runs.</li>
+                <li data-ed>Today's question: what determines whether a session starts <b>grounded</b> or starts <b>guessing</b>?</li>
+            </ul>
+            <p class="lead reveal mt-lg" data-ed>That answer is context engineering — and it's the difference between a tool that fights you and one that already knows your world.</p>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 03 — WHY GENERIC PROMPTS MAKE GENERIC CODE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Problem · Part 1 of 3</span>
+        <span data-ed>03 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>what fills the gap when you don't</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>Garbage in, plausible garbage out.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>When you ask a vague question, the model doesn't pause to ask what you meant — it fills the gap with the most statistically common pattern it has seen for requests like yours. That pattern is often reasonable in general, and wrong for your specific codebase.</p>
+        </div>
+
+        <div class="compare-grid reveal">
+            <div class="flow-step">
+                <span class="fn" data-ed>Without context</span>
+                <span class="ft" style="font-size:24px;" data-ed>"Add a retry to the payment call."</span>
+                <span class="fd" style="font-size:16.5px;" data-ed>Result: a generic exponential backoff, no idempotency key, ignoring the project's existing <code>retryWithBackoff()</code> helper — and a real risk of double-charging a customer on retry.</span>
+            </div>
+            <div class="flow-step" style="border-color:var(--orange);">
+                <span class="fn" style="color:var(--orange);" data-ed>With context</span>
+                <span class="ft" style="font-size:24px;color:var(--orange);" data-ed>Same prompt, grounded by a CLAUDE.md</span>
+                <span class="fd" style="font-size:16.5px;" data-ed>CLAUDE.md already documents the retry helper and the idempotency requirement. Result: correct integration, first try — no double-charge risk, no re-explaining.</span>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>The model isn't broken. <b>The grounding is missing.</b></p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 04 — CONTEXT WINDOW ECONOMICS
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Problem · Part 1 of 3</span>
+        <span data-ed>04 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>every token competes for attention</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>Context is a budget, not a wishlist.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Every model has a finite context window. Everything that goes into it — system instructions, conversation history, file contents, retrieved docs — shares that same budget and competes for the model's attention. Padding the window with irrelevant material doesn't just waste space; it dilutes the signal, even when everything technically "fits."</p>
+        </div>
+
+        <div class="reveal">
+            <div class="ctx-budget-bar">
+                <div class="ctx-budget-seg" style="flex:8;background:var(--ink);">
+                    <span class="cbs-pct" style="color:var(--cream);" data-ed>~8%</span>
+                    <span class="cbs-label" style="color:var(--cream);" data-ed>Grounding</span>
+                </div>
+                <div class="ctx-budget-seg" style="flex:35;background:var(--cream-hint);">
+                    <span class="cbs-pct" style="color:var(--cream);" data-ed>~35%</span>
+                    <span class="cbs-label" style="color:var(--cream);" data-ed>Conversation history</span>
+                </div>
+                <div class="ctx-budget-seg" style="flex:32;background:var(--orange);">
+                    <span class="cbs-pct" style="color:var(--ink);" data-ed>~32%</span>
+                    <span class="cbs-label" style="color:var(--ink);" data-ed>Retrieved docs</span>
+                </div>
+                <div class="ctx-budget-seg" style="flex:25;background:var(--ink-20);">
+                    <span class="cbs-pct" style="color:var(--ink);" data-ed>~25%</span>
+                    <span class="cbs-label" style="color:var(--ink-55);" data-ed>Output headroom</span>
+                </div>
+            </div>
+            <div class="ctx-budget-legend">
+                <div class="cbl-item"><span class="cbl-dot" style="background:var(--ink);"></span><span class="cbl-text" data-ed><b>Grounding</b> — CLAUDE.md, system instructions. Small, fixed, non-negotiable.</span></div>
+                <div class="cbl-item"><span class="cbl-dot" style="background:var(--cream-hint);"></span><span class="cbl-text" data-ed><b>Conversation</b> — grows every turn, whether or not it's still relevant.</span></div>
+                <div class="cbl-item"><span class="cbl-dot" style="background:var(--orange);"></span><span class="cbl-text" data-ed><b>Retrieved docs</b> — pulled in on demand. The lever you actually control.</span></div>
+                <div class="cbl-item"><span class="cbl-dot" style="background:var(--ink-20);"></span><span class="cbl-text" data-ed><b>Headroom</b> — must stay free for the model's own output.</span></div>
+            </div>
+            <p style="font-size:13px;color:var(--ink-45);margin-top:14px;" data-ed>Illustrative split for a typical session — actual proportions shift task to task.</p>
+        </div>
+
+        <p class="lead reveal" data-ed><b>Attention is the model's scarcest resource — not tokens.</b></p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 05 — THE COST OF BEING WRONG
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Problem · Part 1 of 3</span>
+        <span data-ed>05 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>a plausible answer isn't a correct one</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>It doesn't refuse. It guesses — confidently.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>When context is missing, the model doesn't throw an error or say "I don't know your conventions." It produces something fluent, plausible, and quietly wrong — which is more dangerous than an obvious failure, because it passes a skim review.</p>
+        </div>
+
+        <div class="case-callout reveal">
+            <span class="cl" data-ed>a quietly wrong guess</span>
+            <p data-ed>Claude added a new field to an API response. The naming matched the file's existing conventions perfectly. It also silently broke three downstream consumers nobody had mentioned — because nothing in the project said they existed.</p>
+        </div>
+
+        <p class="lead reveal" data-ed>The fix isn't a better prompt. <b>It's better grounding — and there are three layers of it.</b></p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 06 — THREE LAYERS OF CONTEXT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Three Layers · Part 2 of 3</span>
+        <span data-ed>06 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>one layer per kind of knowledge</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>Three different problems. Three different layers.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>CLAUDE.md, memory, and RAG all answer the same question — "how does the model know what it needs to know?" — but each is built for a different shape of problem. Reach for the wrong one, and you've wasted the layer that should have handled it.</p>
+        </div>
+
+        <div class="arch-diagram reveal" style="gap:24px;">
+            <div class="arch-col">
+                <span class="ac-title" data-ed>CLAUDE.md / AGENTS.md</span>
+                <div class="arch-layer attn">
+                    <span class="al-name" data-ed>Static project grounding</span>
+                    <span class="al-desc" data-ed>Loaded every session, identical every time.</span>
+                </div>
+                <div class="arch-layer">
+                    <span class="al-name" data-ed>Best for</span>
+                    <span class="al-desc" data-ed>Conventions, architecture notes, "don't do X."</span>
+                </div>
+                <span class="ac-x" data-ed>always present, same content every time</span>
+            </div>
+            <div class="arch-col">
+                <span class="ac-title" data-ed>Memory</span>
+                <div class="arch-layer attn">
+                    <span class="al-name" data-ed>Persistent facts across sessions</span>
+                    <span class="al-desc" data-ed>Accumulates as you work together.</span>
+                </div>
+                <div class="arch-layer">
+                    <span class="al-name" data-ed>Best for</span>
+                    <span class="al-desc" data-ed>Decisions made, preferences learned, corrections given once.</span>
+                </div>
+                <span class="ac-x" data-ed>grows over time; survives a fresh session</span>
+            </div>
+            <div class="arch-col">
+                <span class="ac-title" data-ed>RAG</span>
+                <div class="arch-layer attn">
+                    <span class="al-name" data-ed>Dynamic retrieval at query time</span>
+                    <span class="al-desc" data-ed>Pulled in only when relevant.</span>
+                </div>
+                <div class="arch-layer">
+                    <span class="al-name" data-ed>Best for</span>
+                    <span class="al-desc" data-ed>Large or changing corpora — codebases, docs, tickets — too big for any context window.</span>
+                </div>
+                <span class="ac-x" data-ed>different content every query, fetched on demand</span>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>Get the layer right, and you stop paying the cost of the others.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 07 — CLAUDE.md / AGENTS.md, UP CLOSE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>CLAUDE.md, Up Close · Part 2 of 3</span>
+        <span data-ed>07 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>the file claude reads before anything else</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:50px;" data-ed>One file, read at the start of every session.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed>CLAUDE.md isn't documentation for humans — it's the first thing the model reads, before it touches your code. What you put in it, it never has to be told twice.</p>
+        </div>
+
+        <div class="anatomy-table">
+            <div class="anatomy-row reveal" style="transition-delay:.04s">
+                <div class="anatomy-name"><span class="num" data-ed>01</span><span class="nm" data-ed>Project overview</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What goes here</span><p data-ed>One paragraph: what the project does, who uses it, the stack.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Why it matters</span><p data-ed>Orients a cold session in seconds, not several exploratory reads.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.08s">
+                <div class="anatomy-name"><span class="num" data-ed>02</span><span class="nm" data-ed>Conventions</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What goes here</span><p data-ed>Naming, formatting, file layout, the helpers that already exist.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Why it matters</span><p data-ed>So they don't get silently reinvented in a new function.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.12s">
+                <div class="anatomy-name"><span class="num" data-ed>03</span><span class="nm" data-ed>Do / don't</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What goes here</span><p data-ed>Explicit guardrails — "never edit generated files," "run X before committing."</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Why it matters</span><p data-ed>Rules a teammate absorbs by osmosis; the model needs them stated.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.16s">
+                <div class="anatomy-name"><span class="num" data-ed>04</span><span class="nm" data-ed>Architecture notes</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What goes here</span><p data-ed>Decisions no single file shows — why the retry helper exists, why two similar services stay separate.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Why it matters</span><p data-ed>Without it, a "cleanup" can quietly undo a deliberate choice.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.2s">
+                <div class="anatomy-name"><span class="num" data-ed>05</span><span class="nm" data-ed>Build / test commands</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What goes here</span><p data-ed>The exact commands to run — lint, test, build, deploy.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Why it matters</span><p data-ed>So the agent verifies its own work instead of guessing.</p></div>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>If you've explained it more than once, it belongs in CLAUDE.md.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 08 — MEMORY, UP CLOSE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Memory, Up Close · Part 2 of 3</span>
+        <span data-ed>08 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>what's worth remembering, on purpose</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:50px;" data-ed>What should survive when the session ends?</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed>CLAUDE.md is static — written once, identical every session. Memory is different: it accumulates, and how you organize it is up to you. Below is one workable taxonomy — not a schema Claude Code enforces, just a pattern worth copying.</p>
+        </div>
+
+        <div class="anatomy-table">
+            <div class="anatomy-row reveal" style="transition-delay:.04s">
+                <div class="anatomy-name"><span class="num" data-ed>01</span><span class="nm" data-ed>User</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it captures</span><p data-ed>Your role, preferences, how you like to work.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Example</span><p data-ed>"Prefers terse responses, reviews every diff before merging."</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.08s">
+                <div class="anatomy-name"><span class="num" data-ed>02</span><span class="nm" data-ed>Feedback</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it captures</span><p data-ed>Corrections and confirmations — what to avoid, what worked.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Example</span><p data-ed>"Don't mock the DB in integration tests — past incident."</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.12s">
+                <div class="anatomy-name"><span class="num" data-ed>03</span><span class="nm" data-ed>Project</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it captures</span><p data-ed>Decisions, deadlines, ongoing context not visible in the code itself.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Example</span><p data-ed>"Auth rewrite is compliance-driven, not cleanup — scope accordingly."</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.16s">
+                <div class="anatomy-name"><span class="num" data-ed>04</span><span class="nm" data-ed>Reference</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it captures</span><p data-ed>Pointers to where the real, up-to-date answer lives externally.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Example</span><p data-ed>"Bugs are tracked in Linear project INGEST, not GitHub Issues."</p></div>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>Memory isn't a transcript of every conversation — it's the small number of facts worth never re-explaining.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 09 — RAG, UP CLOSE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>RAG, Up Close · Part 2 of 3</span>
+        <span data-ed>09 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>retrieval, not memorization</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:50px;" data-ed>Some corpora are simply too large to hand over — so don't.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>A 200-file codebase, a wiki with five years of decisions, a support-ticket archive — none of it fits in a context window, and most of it is irrelevant to any single question. RAG's job is to fetch only the slice that's actually relevant, right when it's needed.</p>
+        </div>
+
+        <div class="flow-diagram reveal">
+            <div class="flow-step">
+                <span class="fn" data-ed>Step 1</span>
+                <span class="ft" data-ed>Chunk &amp; embed</span>
+                <span class="fd" data-ed>Break docs into pieces, convert each piece into a vector that captures its meaning.</span>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step">
+                <span class="fn" data-ed>Step 2</span>
+                <span class="ft" data-ed>Store</span>
+                <span class="fd" data-ed>Index those vectors so the closest matches to any new question can be found fast.</span>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step">
+                <span class="fn" data-ed>Step 3</span>
+                <span class="ft" data-ed>Retrieve</span>
+                <span class="fd" data-ed>Find the chunks closest in meaning to the current question.</span>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step" style="border-color:var(--orange);">
+                <span class="fn" style="color:var(--orange);" data-ed>Step 4</span>
+                <span class="ft" style="color:var(--orange);" data-ed>Augment</span>
+                <span class="fd" data-ed>Drop just those chunks into context, right before the model answers.</span>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>CLAUDE.md and memory are things the model always has. RAG is something it asks for, on demand.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 10 — CHOOSING THE RIGHT LAYER
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Choosing the Right Layer · Part 2 of 3</span>
+        <span data-ed>10 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>match the layer to the problem's shape</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>A simple test: how often does it change, and how big is it?</h2>
+        </div>
+
+        <div class="map-list reveal">
+            <div class="map-item">
+                <span class="map-num" data-ed>Stable fact</span>
+                <div class="map-text">
+                    <span class="mt" data-ed>→ CLAUDE.md</span>
+                    <span class="md" data-ed>Rarely changes, small. "We use pnpm, not npm." "Tests live in /tests, mirroring /src."</span>
+                </div>
+            </div>
+            <div class="map-item">
+                <span class="map-num" data-ed>Durable decision</span>
+                <div class="map-text">
+                    <span class="mt" data-ed>→ Memory</span>
+                    <span class="md" data-ed>Accumulates over time. "We rejected GraphQL last quarter — see ADR-012." "This user wants PR descriptions, not inline comments."</span>
+                </div>
+            </div>
+            <div class="map-item">
+                <span class="map-num" data-ed>Large / changing corpus</span>
+                <div class="map-text">
+                    <span class="mt" data-ed>→ RAG</span>
+                    <span class="md" data-ed>Too big to hold, keeps growing. The full codebase. The support-ticket history. The product wiki.</span>
+                </div>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>Most projects need all three. Most context debt comes from skipping one.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 11 — CONTEXT DEBT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Context Debt · Part 3 of 3</span>
+        <span data-ed>11 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>the debt that accrues in silence</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:50px;" data-ed>Context debt is tech debt's quieter cousin.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Tech debt is code that works but costs more every time you touch it. Context debt is the same idea, one layer up: the gap between what your agent actually needs to know to do good work, and what's actually grounded in CLAUDE.md, memory, and retrievable docs. It doesn't show up as a failing test. It shows up as every session starting a little more confused than it should.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>You explain the same convention to Claude for the third time this month.</li>
+            <li data-ed>It confidently violates a rule that exists — just nowhere it could see.</li>
+            <li data-ed>"It worked differently last week" — with no record of what changed or why.</li>
+            <li data-ed>A new teammate, human or agent, takes days to get productive, because nothing is written down.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Like tech debt, it compounds silently — until a session goes badly enough that you notice.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 12 — ANATOMY OF CONTEXT DEBT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Anatomy of Context Debt · Part 3 of 3</span>
+        <span data-ed>12 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>five familiar failure modes</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>Five ways it shows up.</h2>
+        </div>
+
+        <div class="anatomy-table">
+            <div class="anatomy-row reveal" style="transition-delay:.04s">
+                <div class="anatomy-name"><span class="num" data-ed>01</span><span class="nm" data-ed>Missing CLAUDE.md</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it looks like</span><p data-ed>No grounding file, or three sentences from a year-old README.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>The cost</span><p data-ed>Every session starts from zero; conventions get re-explained or re-guessed.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.08s">
+                <div class="anatomy-name"><span class="num" data-ed>02</span><span class="nm" data-ed>Stale memory</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it looks like</span><p data-ed>Saved facts that were true once, but the project has since moved past.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>The cost</span><p data-ed>Confidently wrong answers that cite a decision already reversed.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.12s">
+                <div class="anatomy-name"><span class="num" data-ed>03</span><span class="nm" data-ed>No examples</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it looks like</span><p data-ed>Rules stated abstractly — "follow our conventions" — nothing concrete to match.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>The cost</span><p data-ed>The model interprets the rule its own way — plausibly, rarely correctly.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.16s">
+                <div class="anatomy-name"><span class="num" data-ed>04</span><span class="nm" data-ed>Conflicting instructions</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it looks like</span><p data-ed>CLAUDE.md says one thing, a code comment another, memory a third.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>The cost</span><p data-ed>The model picks one silently; you find out which only when it breaks.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.2s">
+                <div class="anatomy-name"><span class="num" data-ed>05</span><span class="nm" data-ed>Ungrounded RAG corpus</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it looks like</span><p data-ed>A retrieval index built once, never refreshed, pointing at superseded docs.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>The cost</span><p data-ed>Retrieval "succeeds" — it returns confident, well-formatted, outdated answers.</p></div>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>None of these are exotic. All five are common — and each one, on its own, is fixable faster than you'd expect.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 13 — THE BRIDGE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Bridge</span>
+        <span data-ed>13 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>the project you're about to ground</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>From theory to a real audit.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Every layer so far has been explained in the abstract. Now we do it for real — on a project none of you have seen before, with the same context gaps most real projects actually have: no CLAUDE.md, decisions buried in old Slack threads, a <code>/docs</code> folder nobody's opened in months.</p>
+        </div>
+        <p class="lead reveal" data-ed>Meet <b>Ledger</b> — an order/billing service that's about to get properly grounded.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 14 — LAB PREVIEW
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Lab Preview · Part 4</span>
+        <span data-ed>14 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>now it's your turn</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>Audit it. Ground it. Watch the difference.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Today's lab: take Ledger — a real, working order/billing service with zero grounding — and over four steps, give it a CLAUDE.md, a first memory entry, and a pointer to its own docs. Then ask Claude the same question twice: before and after.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>A real order/billing service, two years old, built by a team that's since moved on.</li>
+            <li data-ed>No CLAUDE.md. A <code>/docs</code> folder nobody's opened in months. Conventions that live only in people's heads.</li>
+            <li data-ed>Your job: ground it in four steps, then observe whether the output actually changes.</li>
+            <li data-ed>Watch for: what you choose to write down vs. leave out — that choice is the actual skill.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 15 — LAB WALKTHROUGH, STEP 1: AUDIT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Lab Walkthrough · Step 1 of 4</span>
+        <span data-ed>15 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>read it cold, before writing anything</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>Read Ledger cold — like Claude would.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Before writing anything, audit it: open the repo fresh, with no prior knowledge, and try to answer "what would I need to know to safely change this code?" Note every place you guessed, assumed, or had to dig through git history or Slack to find out.</p>
+        </div>
+        <div class="case-callout reveal">
+            <span class="cl" data-ed>from ledger</span>
+            <p data-ed>The payment retry logic has no comment explaining its idempotency-key requirement. The only place that's ever been written down is a six-month-old Slack thread.</p>
+        </div>
+        <p class="lead reveal" data-ed>Whatever you just struggled to find — that's the actual audit. Context debt isn't abstract once you're staring at it.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 16 — LAB WALKTHROUGH, STEP 2: WRITE THE CLAUDE.md
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Lab Walkthrough · Step 2 of 4</span>
+        <span data-ed>16 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>be ruthless about what's load-bearing</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>Write down only what you'd have to explain twice.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Turn the audit into a CLAUDE.md. The temptation is to document everything — resist it. A ten-page CLAUDE.md is its own kind of context debt; it eats the same budget you saw in Part 1. Keep to the five sections from earlier — overview, conventions, do/don't, architecture notes, test commands — and be ruthless about what's actually load-bearing.</p>
+        </div>
+        <div class="case-callout reveal">
+            <span class="cl" data-ed>from ledger</span>
+            <p data-ed>The idempotency-key convention from Step 1 becomes one line under "do / don't": "Never call the payment gateway without an idempotency key — see <code>PaymentClient.charge()</code>."</p>
+        </div>
+        <p class="lead reveal" data-ed>Good grounding is short. That's not a constraint — it's the point.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 17 — LAB WALKTHROUGH, STEP 3: SET UP MEMORY
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Lab Walkthrough · Step 3 of 4</span>
+        <span data-ed>17 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>what's true now, not what's always true</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>Capture the one decision that isn't in any file.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>CLAUDE.md covers what's always true. Memory covers what's true now, learned along the way. Today: find one durable decision buried in Slack or institutional memory — like "we decided not to support partial refunds in v1" — and save it as a project memory, so the next person, or the next session, doesn't have to rediscover it the hard way.</p>
+        </div>
+        <div class="case-callout reveal">
+            <span class="cl" data-ed>from ledger</span>
+            <p data-ed>"Partial refunds deferred from v1 (Slack, March). Reintroducing this needs product sign-off, not just an engineering fix." One sentence, saved once, never re-litigated.</p>
+        </div>
+        <p class="lead reveal" data-ed>A memory entry is cheap to write and expensive to lose.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 18 — LAB WALKTHROUGH, STEP 4: CONNECT DOCS & OBSERVE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Lab Walkthrough · Step 4 of 4</span>
+        <span data-ed>18 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>close the loop</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>Same question, asked twice. Compare the answers.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Point Claude at Ledger's existing <code>/docs</code> folder, then ask the same real question you'd ask about this service — before any grounding existed, and after.</p>
+        </div>
+
+        <div class="compare-grid reveal">
+            <div class="flow-step">
+                <span class="fn" data-ed>Before grounding</span>
+                <span class="ft" style="font-size:22px;" data-ed>"Can I safely add partial refunds to Ledger?"</span>
+                <span class="fd" style="font-size:16.5px;" data-ed>A generic implementation sketch, no awareness it was already deliberately deferred — quietly reopens a closed decision.</span>
+            </div>
+            <div class="flow-step" style="border-color:var(--orange);">
+                <span class="fn" style="color:var(--orange);" data-ed>After grounding</span>
+                <span class="ft" style="font-size:22px;color:var(--orange);" data-ed>Same question, same service</span>
+                <span class="fd" style="font-size:16.5px;" data-ed>Correctly surfaces the memory entry — "deferred from v1, needs product sign-off" — instead of treating it as a clean-slate feature request.</span>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>That difference is everything you just built, made visible in one diff of answers.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 19 — YOUR TURN: OPEN THE LAB GUIDE
+     ============================================================ -->
+<section class="slide orange">
+    <div class="chrome top">
+        <span data-ed>Your Turn</span>
+        <span data-ed>19 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <span class="kicker reveal" data-ed>go</span>
+            <h1 class="display reveal-wipe mt-md" style="font-size:140px;text-transform:none;" data-ed>Open the lab guide.</h1>
+        </div>
+        <ul class="bs-list reveal">
+            <li data-ed>Audit — read it cold, note every gap.</li>
+            <li data-ed>Write the CLAUDE.md — five sections, nothing more.</li>
+            <li data-ed>Set up memory — one durable decision, captured once.</li>
+            <li data-ed>Point Claude at docs — then ask your real question, before and after.</li>
+        </ul>
+        <p class="lead reveal" data-ed>~35–40 minutes. Then we regroup.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 20 — APPLY: AUDIT YOUR OWN PROJECT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Apply · Your Reps</span>
+        <span data-ed>20 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>your reps this week</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>Audit your own project's context debt.</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Pick one real project you work in regularly.</li>
+            <li data-ed>Run the same audit: what would a cold session need to know that isn't written down anywhere?</li>
+            <li data-ed>Write or improve its CLAUDE.md — five sections, nothing more.</li>
+            <li data-ed>Set up at least one persistent memory entry — a decision that keeps almost getting re-explained.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Bring your biggest find to next session — yours, or someone else's.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 21 — OUTCOME + LOOKING AHEAD TO WEEK 3
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Looking Ahead</span>
+        <span data-ed>21 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>what you now know · what's next</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>You now know how to ground an agent in your world. Next: giving it new capabilities.</h2>
+        </div>
+
+        <div class="reveal">
+            <span class="kicker" data-ed>today's takeaways</span>
+            <div class="outcome-grid mt-md" style="grid-template-columns:repeat(3,1fr);">
+                <div class="outcome-item">
+                    <span class="on" data-ed>vocabulary</span>
+                    <span class="ot" data-ed>CLAUDE.md, memory, RAG — and exactly when to reach for each</span>
+                </div>
+                <div class="outcome-item">
+                    <span class="on" data-ed>skill</span>
+                    <span class="ot" data-ed>auditing context debt, and fixing it without overloading the budget</span>
+                </div>
+                <div class="outcome-item">
+                    <span class="on" data-ed>artifact</span>
+                    <span class="ot" data-ed>a real CLAUDE.md + memory entry, built on Ledger today</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="reveal" style="background:var(--orange);color:var(--ink);
+                     margin:0 calc(-1 * var(--pad-x));padding:30px var(--pad-x);
+                     display:flex;align-items:center;gap:48px;">
+            <span style="font-weight:900;font-size:56px;line-height:1;letter-spacing:-.03em;white-space:nowrap;" data-ed>Week 3 →</span>
+            <p style="font-size:var(--body);line-height:1.4;color:var(--ink-75);" data-ed><b style="color:var(--ink);">Skills: Packaging Reusable Capabilities.</b> Turning the things you do repeatedly into Skills Claude can invoke on its own — starting with the runbooks already shaped like one.</p>
+        </div>
+    </div>
+</section>
+
+</main>
+</div>
+
+<!-- Presentation chrome (outside the scaled stage) -->
+<div class="deck-counter"><span class="cur" id="curNum">01</span> / <span id="totNum">21</span></div>
+<nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+<!-- Inline editing affordance -->
+<div class="edit-hotzone" aria-hidden="true"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">✎</button>
+<div class="edit-hint">EDIT MODE · click any text · Ctrl+S saves · ⤓ exports</div>
+
+<script>
+/* ===========================================================
+   SLIDE CONTROLLER
+   =========================================================== */
+class SlidePresentation{
+    constructor(){
+        this.stage=document.getElementById('deckStage');
+        this.slides=[...document.querySelectorAll('.slide')];
+        this.current=0;
+        this.buildDots();
+        this.setupStageScale();
+        this.setupNav();
+        this.show(0);
+    }
+    setupStageScale(){
+        const scale=()=>{
+            const f=Math.min(window.innerWidth/1920,window.innerHeight/1080);
+            const x=(window.innerWidth-1920*f)/2;
+            const y=(window.innerHeight-1080*f)/2;
+            this.stage.style.transform=`translate(${x}px,${y}px) scale(${f})`;
+        };
+        scale();
+        window.addEventListener('resize',scale);
+    }
+    buildDots(){
+        const wrap=document.getElementById('navDots');
+        this.slides.forEach((_,i)=>{
+            const b=document.createElement('button');
+            b.setAttribute('aria-label','Go to slide '+(i+1));
+            b.addEventListener('click',()=>this.show(i));
+            wrap.appendChild(b);
+        });
+        this.dots=[...wrap.children];
+        document.getElementById('totNum').textContent=String(this.slides.length).padStart(2,'0');
+    }
+    setupNav(){
+        document.addEventListener('keydown',e=>{
+            if(e.target.getAttribute&&e.target.getAttribute('contenteditable')==='true')return;
+            if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();this.next();}
+            else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.prev();}
+            else if(e.key==='Home'){this.show(0);}
+            else if(e.key==='End'){this.show(this.slides.length-1);}
+        });
+        let wheelLock=false;
+        window.addEventListener('wheel',e=>{
+            if(document.body.classList.contains('editing'))return;
+            if(wheelLock)return;
+            if(Math.abs(e.deltaY)<24)return;
+            wheelLock=true;setTimeout(()=>wheelLock=false,700);
+            e.deltaY>0?this.next():this.prev();
+        },{passive:true});
+        let sx=0,sy=0;
+        window.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+        window.addEventListener('touchend',e=>{
+            const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+            if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){dx<0?this.next():this.prev();}
+        },{passive:true});
+    }
+    show(i){
+        this.current=Math.max(0,Math.min(i,this.slides.length-1));
+        this.slides.forEach((s,n)=>{
+            s.classList.toggle('active',n===this.current);
+            s.classList.toggle('visible',n===this.current);
+        });
+        this.dots.forEach((d,n)=>d.classList.toggle('on',n===this.current));
+        document.getElementById('curNum').textContent=String(this.current+1).padStart(2,'0');
+    }
+    next(){this.show(this.current+1);}
+    prev(){this.show(this.current-1);}
+}
+
+/* ===========================================================
+   INLINE EDITOR
+   =========================================================== */
+class Editor{
+    constructor(){
+        this.isActive=false;
+        this.els=[...document.querySelectorAll('[data-ed]')];
+        this.restore();
+        this.wire();
+    }
+    key(){return 'broadside-deck-week2::'+location.pathname;}
+    restore(){
+        try{
+            const saved=JSON.parse(localStorage.getItem(this.key())||'null');
+            if(saved&&Array.isArray(saved)&&saved.length===this.els.length){
+                this.els.forEach((el,i)=>{if(saved[i]!=null)el.innerHTML=saved[i];});
+            }
+        }catch(_){}
+    }
+    save(){
+        try{localStorage.setItem(this.key(),JSON.stringify(this.els.map(el=>el.innerHTML)));}catch(_){}
+    }
+    toggleEditMode(){
+        this.isActive=!this.isActive;
+        document.body.classList.toggle('editing',this.isActive);
+        document.getElementById('editToggle').classList.toggle('active',this.isActive);
+        this.els.forEach(el=>{
+            el.setAttribute('contenteditable',this.isActive?'true':'false');
+            if(this.isActive){el.addEventListener('input',this._oninput);}
+        });
+    }
+    _oninput=()=>this.save();
+    export(){
+        const clone=document.documentElement.cloneNode(true);
+        clone.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+        clone.querySelectorAll('.edit-hotzone,.edit-toggle,.edit-hint').forEach(n=>n.remove());
+        const html='<!DOCTYPE html>\n'+clone.outerHTML;
+        const blob=new Blob([html],{type:'text/html'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='week2-context-engineering-broadside.html';
+        a.click();
+    }
+    wire(){
+        const toggle=document.getElementById('editToggle');
+        const hotzone=document.querySelector('.edit-hotzone');
+        let hideTimeout=null;
+        toggle.addEventListener('click',()=>this.toggleEditMode());
+        hotzone.addEventListener('mouseenter',()=>{clearTimeout(hideTimeout);toggle.classList.add('show');});
+        hotzone.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        toggle.addEventListener('mouseenter',()=>clearTimeout(hideTimeout));
+        toggle.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        hotzone.addEventListener('click',()=>this.toggleEditMode());
+        document.addEventListener('keydown',e=>{
+            if((e.key==='e'||e.key==='E')&&e.target.getAttribute&&e.target.getAttribute('contenteditable')!=='true'){this.toggleEditMode();}
+            if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();this.save();this.flash('saved');}
+            if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='e'&&this.isActive){e.preventDefault();this.export();}
+        });
+    }
+    flash(msg){
+        const hint=document.querySelector('.edit-hint');
+        if(!hint)return;const prev=hint.textContent;hint.textContent=msg.toUpperCase();
+        setTimeout(()=>hint.textContent=prev,1000);
+    }
+}
+
+const deck=new SlidePresentation();
+const editor=new Editor();
+</script>
+</body>
+</html>

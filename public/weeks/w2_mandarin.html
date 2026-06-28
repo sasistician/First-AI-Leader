@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第2周 — 上下文工程 | AI优先工程师</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700;800;900&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================
+   THEME TOKENS — CORAL PALETTE (matches week0/week1 broadside)
+   =========================================================== */
+:root{
+    --ink:#1A0D0A;
+    --ink-alt:#221210;
+    --orange:#D84D3C;
+    --cream:#FBF5F0;
+    --cream-muted:#9C8078;
+    --cream-hint:#604840;
+    --border-dark:#2C1510;
+    --ink-75:rgba(26,13,10,.75);
+    --ink-55:rgba(26,13,10,.55);
+    --ink-45:rgba(26,13,10,.45);
+    --ink-20:rgba(26,13,10,.20);
+
+    --font-display:'Barlow',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+
+    --display:184px;
+    --h1:140px;
+    --h2:86px;
+    --h3:50px;
+    --stat:104px;
+    --lead:31px;
+    --body:23px;
+    --caption:17px;
+    --label:14px;
+
+    --pad-x:106px;
+    --pad-y:62px;
+    --gap-lg:40px;
+    --gap-md:24px;
+    --gap-sm:12px;
+
+    --ease:cubic-bezier(0.16,1,0.3,1);
+    --ease-slide:cubic-bezier(0.77,0,0.175,1);
+    --stage-bg:#000;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ===========================================================
+   FIXED 16:9 STAGE (viewport-base.css contents)
+   =========================================================== */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg,#fff);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff);}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+img,video,canvas,svg{max-width:100%;max-height:100%;}
+.deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000;}
+@media print{
+    html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
+    .deck-viewport{position:static;overflow:visible;background:#fff;}
+    .deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none;}
+    .slide{position:relative;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
+    .slide:last-child{break-after:auto;page-break-after:auto;}
+    .deck-controls{display:none!important;}
+}
+@media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.2s!important;}
+}
+
+/* ===========================================================
+   SLIDE FRAME
+   =========================================================== */
+.slide{
+    display:flex;flex-direction:column;
+    padding:var(--pad-y) var(--pad-x);
+    background:#FDEAE4;color:var(--ink);
+    font-family:var(--font-display);
+}
+.slide.orange{background:#FDEAE4;color:var(--ink);}
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;}
+
+/* ===========================================================
+   CHROME
+   =========================================================== */
+.chrome{display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);}
+.chrome.top{border-bottom:1px solid var(--ink-20);padding-bottom:var(--gap-sm);}
+.chrome.bot{border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);margin-top:var(--gap-md);}
+
+/* ===========================================================
+   TYPE
+   =========================================================== */
+.kicker{font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.display{font-weight:900;font-size:var(--display);line-height:.88;letter-spacing:-.04em;text-transform:lowercase;}
+.h2{font-weight:800;font-size:var(--h2);line-height:1.02;letter-spacing:-.03em;}
+.h3{font-weight:700;font-size:var(--h3);line-height:1.08;letter-spacing:-.02em;}
+.lead{font-weight:400;font-size:var(--lead);line-height:1.45;color:var(--ink-75);}
+.body{font-size:var(--body);line-height:1.55;color:var(--ink-75);}
+
+.rule{width:36px;height:2px;background:var(--orange);border:0;}
+
+.broadside-num{font-family:var(--font-mono);font-size:22px;font-weight:500;
+    letter-spacing:.1em;color:var(--ink-45);}
+
+.tag{display:inline-block;font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);
+    border:1px solid var(--orange);padding:.4em .8em;}
+
+/* ===========================================================
+   BROADSIDE BULLET LIST
+   =========================================================== */
+.bs-list{list-style:none;}
+.bs-list li{position:relative;padding-left:1.7em;font-size:var(--lead);line-height:1.32;
+    color:var(--ink);margin-bottom:var(--gap-md);}
+.bs-list li:last-child{margin-bottom:0;}
+.bs-list li::before{content:"/";position:absolute;left:0;top:0;color:var(--orange);
+    font-family:var(--font-mono);font-weight:700;}
+.bs-list.small li{font-size:20px;line-height:1.4;}
+
+/* ===========================================================
+   OUTCOME PILLARS
+   =========================================================== */
+.outcome-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+    border-top:1px solid var(--ink-20);padding-top:20px;}
+.outcome-item{padding-right:20px;}
+.outcome-item .on{display:block;font-family:var(--font-mono);font-size:11px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);margin-bottom:6px;}
+.outcome-item .ot{font-weight:800;font-size:20px;line-height:1.1;color:var(--ink);}
+
+/* ===========================================================
+   TODAY'S MAP (cover slide, right panel) / decision lists
+   =========================================================== */
+.map-list{display:flex;flex-direction:column;}
+.map-item{display:flex;gap:24px;align-items:flex-start;padding:18px 0;border-top:1px solid var(--ink-20);}
+.map-item:first-child{border-top:none;padding-top:0;}
+.map-num{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:.1em;
+    color:var(--orange);min-width:64px;flex-shrink:0;padding-top:4px;}
+.map-text .mt{font-weight:800;font-size:22px;color:var(--ink);line-height:1.2;}
+.map-text .md{font-size:15px;color:var(--ink-55);margin-top:5px;line-height:1.45;}
+
+/* ===========================================================
+   FLOW DIAGRAM / COMPARE CARDS
+   =========================================================== */
+.flow-diagram{display:flex;align-items:stretch;}
+.flow-step{flex:1;border:1px solid var(--ink-20);padding:30px 28px;display:flex;flex-direction:column;gap:12px;}
+.flow-step .fn{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.flow-step .fc{font-family:var(--font-mono);font-weight:700;font-size:30px;color:var(--ink);letter-spacing:-.01em;}
+.flow-step .ft{font-weight:800;font-size:24px;line-height:1.1;color:var(--ink);}
+.flow-step .fd{font-size:16px;line-height:1.5;color:var(--ink-55);}
+.flow-arrow{width:54px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:28px;color:var(--orange);font-weight:700;flex-shrink:0;}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;}
+
+/* ===========================================================
+   CASE CALLOUT / STAT
+   =========================================================== */
+.stat-num{font-weight:900;font-size:var(--stat);line-height:.85;letter-spacing:-.03em;color:var(--orange);}
+.stat-label{font-weight:800;font-size:var(--h2);line-height:1;letter-spacing:-.03em;color:var(--ink);margin-top:8px;}
+.case-callout{border-left:3px solid var(--orange);padding:4px 0 4px 28px;}
+.case-callout .cl{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-45);margin-bottom:6px;display:block;}
+.case-callout p{font-size:18px;line-height:1.55;color:var(--ink-75);}
+
+/* ===========================================================
+   ANATOMY TABLE
+   =========================================================== */
+.anatomy-table{display:flex;flex-direction:column;flex:1;justify-content:center;min-height:0;}
+.anatomy-row{display:grid;grid-template-columns:300px 1fr 1.15fr;gap:40px;align-items:start;
+    border-top:1px solid var(--ink-20);padding:17px 0;}
+.anatomy-row:last-child{border-bottom:1px solid var(--ink-20);}
+.anatomy-name .num{display:block;font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.anatomy-name .nm{font-weight:800;font-size:27px;line-height:1.1;color:var(--ink);}
+.anatomy-cell .lbl{display:block;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-45);margin-bottom:6px;}
+.anatomy-cell p{font-size:17px;line-height:1.5;color:var(--ink-75);}
+
+/* ===========================================================
+   THREE-COLUMN ARCHITECTURE / LAYER COMPARISON
+   =========================================================== */
+.arch-diagram{display:flex;align-items:stretch;}
+.arch-col{flex:1;border:1px solid var(--ink-20);padding:30px 34px;display:flex;flex-direction:column;gap:16px;}
+.arch-col .ac-title{font-family:var(--font-mono);font-size:13px;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--orange);}
+.arch-layer{border-top:2px solid var(--ink-20);padding:14px 0 0;}
+.arch-layer.attn{border-color:var(--orange);}
+.arch-layer .al-name{font-weight:800;font-size:20px;color:var(--ink);line-height:1.15;}
+.arch-layer .al-desc{font-size:14px;line-height:1.4;color:var(--ink-55);margin-top:4px;}
+.arch-col .ac-x{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;color:var(--ink-45);
+    text-transform:uppercase;text-align:center;padding-top:6px;}
+
+/* ===========================================================
+   CONTEXT WINDOW BUDGET BAR
+   =========================================================== */
+.ctx-budget-bar{display:flex;width:100%;height:84px;border:1px solid var(--ink-20);}
+.ctx-budget-seg{display:flex;flex-direction:column;justify-content:center;padding:0 22px;
+    border-right:1px solid var(--cream);overflow:hidden;}
+.ctx-budget-seg:last-child{border-right:none;}
+.ctx-budget-seg .cbs-pct{font-family:var(--font-mono);font-weight:700;font-size:22px;}
+.ctx-budget-seg .cbs-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;margin-top:3px;white-space:nowrap;}
+.ctx-budget-legend{display:flex;gap:34px;margin-top:20px;flex-wrap:wrap;}
+.ctx-budget-legend .cbl-item{display:flex;align-items:flex-start;gap:10px;max-width:280px;}
+.ctx-budget-legend .cbl-dot{width:12px;height:12px;flex-shrink:0;margin-top:4px;}
+.ctx-budget-legend .cbl-text{font-size:14.5px;color:var(--ink-55);line-height:1.35;}
+.ctx-budget-legend .cbl-text b{color:var(--ink);}
+
+/* Spacing helpers */
+.stack>*+*{margin-top:var(--gap-md);}
+.stack-lg>*+*{margin-top:var(--gap-lg);}
+.mt-sm{margin-top:var(--gap-sm);}
+.mt-md{margin-top:var(--gap-md);}
+.mt-lg{margin-top:var(--gap-lg);}
+.maxw{max-width:62%;}
+
+/* ===========================================================
+   ANIMATIONS
+   =========================================================== */
+.reveal{opacity:0;transform:translateY(34px);
+    transition:opacity .6s var(--ease),transform .6s var(--ease);}
+.slide.visible .reveal{opacity:1;transform:none;}
+.reveal-wipe{opacity:0;clip-path:inset(0 0 100% 0);
+    transition:opacity .7s var(--ease),clip-path .9s var(--ease-slide);}
+.slide.visible .reveal-wipe{opacity:1;clip-path:inset(0 0 0 0);}
+
+/* ===========================================================
+   PRESENTATION CHROME
+   =========================================================== */
+.deck-counter{position:fixed;right:26px;bottom:22px;z-index:1000;
+    font-family:var(--font-mono);font-size:13px;letter-spacing:.16em;
+    color:rgba(251,245,240,.55);}
+.deck-counter .cur{color:var(--orange);}
+.nav-dots{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1000;
+    display:flex;gap:12px;}
+.nav-dots button{width:9px;height:9px;border-radius:50%;border:1px solid rgba(251,245,240,.4);
+    background:transparent;cursor:pointer;padding:0;transition:all .3s var(--ease);}
+.nav-dots button.on{background:var(--orange);border-color:var(--orange);transform:scale(1.15);}
+
+/* Inline editing */
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.edit-toggle{position:fixed;top:18px;left:18px;z-index:10001;width:46px;height:46px;
+    border:1px solid var(--orange);background:var(--ink);color:var(--cream);font-size:18px;
+    cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}
+.edit-toggle.active{background:var(--orange);color:var(--ink);}
+body.editing [data-ed]{outline:1px dashed rgba(216,77,60,.7);outline-offset:4px;cursor:text;}
+body.editing [data-ed]:focus{outline:1px solid var(--orange);}
+.edit-hint{position:fixed;top:18px;left:74px;z-index:10001;font-family:var(--font-mono);
+    font-size:12px;letter-spacing:.1em;color:var(--cream-muted);background:var(--ink);
+    padding:14px 12px;border:1px solid var(--border-dark);display:none;}
+body.editing .edit-hint{display:block;}
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- ============================================================
+     SLIDE 01 — COVER
+     ============================================================ -->
+<section class="slide orange active">
+    <header style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span class="broadside-num reveal" data-ed>№ 01 — 21</span>
+        <span class="broadside-num reveal" data-ed>第2周 · 上下文工程 · 90分钟直播课程</span>
+    </header>
+
+    <div class="slide-body" style="flex-direction:row;align-items:stretch;gap:0;">
+        <!-- LEFT: hero -->
+        <div style="flex:1.1;display:flex;flex-direction:column;justify-content:center;
+                    padding-right:72px;border-right:1px solid var(--ink-20);">
+            <div class="kicker reveal" data-ed>ai优先工程师 · claude code 构建者项目</div>
+            <div class="rule reveal mt-md"></div>
+            <h1 class="display reveal-wipe mt-md" style="text-transform:none;" data-ed>扎根。</h1>
+            <h2 class="h3 reveal mt-md" style="font-weight:700;" data-ed>上下文工程 · 记忆、CLAUDE.md 与 RAG</h2>
+            <p class="lead reveal mt-md" data-ed>上周是关于如何指挥这个循环。这周是关于循环里面装的是什么——
+                <b>一个真正扎根于你的世界的智能体，和一个只会瞎猜的智能体之间的区别。</b>
+                同样的模型，同样的循环，输出却天差地别——而这道差距，是完全可以补上的。</p>
+        </div>
+
+        <!-- RIGHT: today's arc -->
+        <div style="flex:0.9;display:flex;flex-direction:column;justify-content:center;
+                    padding-left:72px;">
+            <span class="kicker reveal" data-ed>今日路线 · 五个篇章</span>
+            <div class="map-list reveal mt-md">
+                <div class="map-item">
+                    <span class="map-num" data-ed>第1部分</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>问题所在</span>
+                        <span class="md" data-ed>为什么有没有扎根，决定了输出是泛泛而谈，还是真正有用。</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>第2部分</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>扎根的三个层次</span>
+                        <span class="md" data-ed>CLAUDE.md、记忆与 RAG——各自的用途，以及什么时候该用哪一个。</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>第3部分</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>上下文债务</span>
+                        <span class="md" data-ed>为这道缺口命名：智能体需要知道的，和实际已经扎根的，两者之间的差距。</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>第4部分</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>实验环节：为「Ledger」扎根</span>
+                        <span class="md" data-ed>写一份真正的 CLAUDE.md，搭建持久化记忆，并让 Claude 连接到现有文档。</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>应用</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>审计你自己的项目</span>
+                        <span class="md" data-ed>这周找出你最大的上下文缺口——并开始补上它。</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="display:flex;justify-content:space-between;align-items:flex-end;
+                   border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);">
+        <span class="body reveal" style="color:var(--ink-75);" data-ed>Bilal Farooq · 20年数据科学与人工智能经验 · 足迹遍及六国</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+            <span class="kicker reveal" data-ed>延续自第1周</span>
+            <span class="reveal" style="font-family:var(--font-mono);font-size:15px;letter-spacing:.08em;color:var(--orange);font-weight:600;" data-ed>Claude Code 已安装，并能熟练指挥 · 心中带着你的核心问题</span>
+        </div>
+    </footer>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 02 — RECAP: FROM WEEK 1
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>回顾 · 来自第1周</span>
+        <span data-ed>02 — 21</span>
+    </div>
+
+    <div class="slide-body" style="flex-direction:row;gap:0;align-items:stretch;">
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-right:72px;border-right:1px solid var(--ink-20);">
+            <div class="kicker reveal" data-ed>在今天之前</div>
+            <h2 class="h2 reveal mt-md" style="font-size:54px;" data-ed>上周讲的是循环本身。这周讲的是循环里装的是什么。</h2>
+            <p class="body reveal mt-md" data-ed>你已经学会了在不同权限模式下，引导 Claude Code 走完感知 → 规划 → 行动 → 观察的完整循环，处理真实、混乱的代码。这个循环确实管用——但你可能已经注意到一件事：把同一个循环用在两个不同的项目上，输出质量却天差地别。有时候 Claude「一下就懂了」；有时候，你每一次会话都要重新解释一遍同样的约定。</p>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-left:72px;">
+            <ul class="bs-list reveal">
+                <li data-ed>循环是机制本身。无论项目是什么，它的运行方式都一样。</li>
+                <li data-ed>变化的是，循环运行时模型手头能用上的东西。</li>
+                <li data-ed>今天的问题是：是什么决定了一次会话一开始就<b>扎根</b>，还是一开始就<b>瞎猜</b>？</li>
+            </ul>
+            <p class="lead reveal mt-lg" data-ed>答案就是上下文工程——这正是一个处处跟你较劲的工具，和一个早已了解你的世界的工具之间的区别。</p>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 03 — WHY GENERIC PROMPTS MAKE GENERIC CODE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>问题所在 · 第1部分（共3部分）</span>
+        <span data-ed>03 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>你不填的空白，会被什么填满</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>垃圾进去，看似靠谱的垃圾出来。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>当你提出一个含糊的问题时，模型不会停下来问你到底是什么意思——它会用见过的、针对这类请求最常见的模式，去填补这个空白。这种模式放在一般情况下往往说得通，但放到你的具体代码库里，就是错的。</p>
+        </div>
+
+        <div class="compare-grid reveal">
+            <div class="flow-step">
+                <span class="fn" data-ed>没有上下文</span>
+                <span class="ft" style="font-size:24px;" data-ed>「给支付调用加一个重试。」</span>
+                <span class="fd" style="font-size:16.5px;" data-ed>结果：一个通用的指数退避重试，没有幂等键，无视了项目里现成的 <code>retryWithBackoff()</code> 辅助函数——而且重试时真的有可能让客户被重复扣款。</span>
+            </div>
+            <div class="flow-step" style="border-color:var(--orange);">
+                <span class="fn" style="color:var(--orange);" data-ed>有上下文</span>
+                <span class="ft" style="font-size:24px;color:var(--orange);" data-ed>同样的提示，但有 CLAUDE.md 扎根</span>
+                <span class="fd" style="font-size:16.5px;" data-ed>CLAUDE.md 里已经写明了这个重试辅助函数和幂等性要求。结果：一次就接对了——没有重复扣款风险，也不用重新解释一遍。</span>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>模型没有问题。<b>缺的是扎根。</b></p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 04 — CONTEXT WINDOW ECONOMICS
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>问题所在 · 第1部分（共3部分）</span>
+        <span data-ed>04 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>每一个 token，都在争夺注意力</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>上下文是预算，不是愿望清单。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>每个模型的上下文窗口都是有限的。所有放进去的东西——系统指令、对话历史、文件内容、检索到的文档——都共用同一份预算，互相争夺模型的注意力。往窗口里塞无关的内容，不只是浪费空间；即使技术上「塞得进去」，它也会稀释真正有用的信号。</p>
+        </div>
+
+        <div class="reveal">
+            <div class="ctx-budget-bar">
+                <div class="ctx-budget-seg" style="flex:8;background:var(--ink);">
+                    <span class="cbs-pct" style="color:var(--cream);" data-ed>~8%</span>
+                    <span class="cbs-label" style="color:var(--cream);" data-ed>扎根</span>
+                </div>
+                <div class="ctx-budget-seg" style="flex:35;background:var(--cream-hint);">
+                    <span class="cbs-pct" style="color:var(--cream);" data-ed>~35%</span>
+                    <span class="cbs-label" style="color:var(--cream);" data-ed>对话历史</span>
+                </div>
+                <div class="ctx-budget-seg" style="flex:32;background:var(--orange);">
+                    <span class="cbs-pct" style="color:var(--ink);" data-ed>~32%</span>
+                    <span class="cbs-label" style="color:var(--ink);" data-ed>检索文档</span>
+                </div>
+                <div class="ctx-budget-seg" style="flex:25;background:var(--ink-20);">
+                    <span class="cbs-pct" style="color:var(--ink);" data-ed>~25%</span>
+                    <span class="cbs-label" style="color:var(--ink-55);" data-ed>输出余量</span>
+                </div>
+            </div>
+            <div class="ctx-budget-legend">
+                <div class="cbl-item"><span class="cbl-dot" style="background:var(--ink);"></span><span class="cbl-text" data-ed><b>扎根材料</b> —— CLAUDE.md、系统指令。体量小、固定、没有商量空间。</span></div>
+                <div class="cbl-item"><span class="cbl-dot" style="background:var(--cream-hint);"></span><span class="cbl-text" data-ed><b>对话</b> —— 每一轮都在增长，不管还相关不相关。</span></div>
+                <div class="cbl-item"><span class="cbl-dot" style="background:var(--orange);"></span><span class="cbl-text" data-ed><b>检索文档</b> —— 按需取用，是你真正能掌控的那根杠杆。</span></div>
+                <div class="cbl-item"><span class="cbl-dot" style="background:var(--ink-20);"></span><span class="cbl-text" data-ed><b>余量</b> —— 必须留给模型自己的输出。</span></div>
+            </div>
+            <p style="font-size:13px;color:var(--ink-45);margin-top:14px;" data-ed>这只是典型会话的示意比例——实际比例会因任务而变化。</p>
+        </div>
+
+        <p class="lead reveal" data-ed><b>注意力，才是模型最稀缺的资源——不是 token 数量。</b></p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 05 — THE COST OF BEING WRONG
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>问题所在 · 第1部分（共3部分）</span>
+        <span data-ed>05 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>听起来合理，不代表是对的</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>它不会拒绝回答。它会很自信地——瞎猜。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>上下文缺失时，模型不会报错，也不会说「我不知道你们的约定」。它会给出一个表达流畅、听起来很合理、却悄悄出错的答案——这比明显的失败更危险，因为它能轻松通过一次粗略审查。</p>
+        </div>
+
+        <div class="case-callout reveal">
+            <span class="cl" data-ed>一个悄悄出错的猜测</span>
+            <p data-ed>Claude 给一个 API 响应加了一个新字段。命名完全符合文件里现有的约定。但它也悄无声息地弄坏了三个下游消费者——没有人提到过它们，因为项目里压根没写它们的存在。</p>
+        </div>
+
+        <p class="lead reveal" data-ed>解决办法不是写一个更好的提示词。<b>而是更好的扎根——而扎根，分三个层次。</b></p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 06 — THREE LAYERS OF CONTEXT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>三个层次 · 第2部分（共3部分）</span>
+        <span data-ed>06 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>一种知识，对应一个层次</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>三种不同的问题。三个不同的层次。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>CLAUDE.md、记忆和 RAG，回答的其实是同一个问题——「模型怎么知道它需要知道的东西？」——但它们各自针对的是不同形状的问题。用错了层次，原本该解决问题的那一层，就白白浪费了。</p>
+        </div>
+
+        <div class="arch-diagram reveal" style="gap:24px;">
+            <div class="arch-col">
+                <span class="ac-title" data-ed>CLAUDE.md / AGENTS.md</span>
+                <div class="arch-layer attn">
+                    <span class="al-name" data-ed>静态的项目扎根</span>
+                    <span class="al-desc" data-ed>每次会话都会加载，每次内容都一样。</span>
+                </div>
+                <div class="arch-layer">
+                    <span class="al-name" data-ed>最适合</span>
+                    <span class="al-desc" data-ed>约定、架构说明，以及「不要做X」这类规则。</span>
+                </div>
+                <span class="ac-x" data-ed>始终存在，每次内容相同</span>
+            </div>
+            <div class="arch-col">
+                <span class="ac-title" data-ed>记忆</span>
+                <div class="arch-layer attn">
+                    <span class="al-name" data-ed>跨会话持久保存的事实</span>
+                    <span class="al-desc" data-ed>随着你们一起工作不断累积。</span>
+                </div>
+                <div class="arch-layer">
+                    <span class="al-name" data-ed>最适合</span>
+                    <span class="al-desc" data-ed>已做出的决策、了解到的偏好，以及只需说一次的纠正。</span>
+                </div>
+                <span class="ac-x" data-ed>随时间增长；能在全新会话中留存</span>
+            </div>
+            <div class="arch-col">
+                <span class="ac-title" data-ed>RAG</span>
+                <div class="arch-layer attn">
+                    <span class="al-name" data-ed>查询时动态检索</span>
+                    <span class="al-desc" data-ed>只有相关时才会被取用。</span>
+                </div>
+                <div class="arch-layer">
+                    <span class="al-name" data-ed>最适合</span>
+                    <span class="al-desc" data-ed>庞大或不断变化的语料——代码库、文档、工单——大到任何上下文窗口都装不下。</span>
+                </div>
+                <span class="ac-x" data-ed>每次查询内容不同，按需取用</span>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>用对了层次，你就不用再为另外两层付出代价。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 07 — CLAUDE.md / AGENTS.md, UP CLOSE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>CLAUDE.md 细看 · 第2部分（共3部分）</span>
+        <span data-ed>07 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>claude 在碰任何东西之前，先读的那个文件</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:50px;" data-ed>一个文件，每次会话开始时都会被读一遍。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed>CLAUDE.md 不是写给人看的文档——它是模型在碰你的代码之前，最先读的东西。写进去的内容，就再也不用说第二遍。</p>
+        </div>
+
+        <div class="anatomy-table">
+            <div class="anatomy-row reveal" style="transition-delay:.04s">
+                <div class="anatomy-name"><span class="num" data-ed>01</span><span class="nm" data-ed>项目概览</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>写什么</span><p data-ed>一段话：这个项目做什么，谁在用，技术栈是什么。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>为什么重要</span><p data-ed>几秒钟就能让一次全新会话进入状态，不用反复探索式阅读。</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.08s">
+                <div class="anatomy-name"><span class="num" data-ed>02</span><span class="nm" data-ed>约定</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>写什么</span><p data-ed>命名、格式、文件结构，以及已经存在的辅助函数。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>为什么重要</span><p data-ed>免得这些东西在新函数里被悄悄重新发明一遍。</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.12s">
+                <div class="anatomy-name"><span class="num" data-ed>03</span><span class="nm" data-ed>该做 / 不该做</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>写什么</span><p data-ed>明确的护栏——比如「永远不要编辑生成的文件」「提交前先运行X」。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>为什么重要</span><p data-ed>这些规则，人类同事靠日积月累就能心领神会；模型需要你把它写出来。</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.16s">
+                <div class="anatomy-name"><span class="num" data-ed>04</span><span class="nm" data-ed>架构说明</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>写什么</span><p data-ed>任何单个文件都看不出来的决策——比如为什么会有这个重试辅助函数，为什么两个相似的服务要分开。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>为什么重要</span><p data-ed>没有这些说明，一次「清理」就可能悄悄推翻一个本来刻意做出的选择。</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.2s">
+                <div class="anatomy-name"><span class="num" data-ed>05</span><span class="nm" data-ed>构建 / 测试命令</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>写什么</span><p data-ed>要运行的具体命令——lint、测试、构建、部署。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>为什么重要</span><p data-ed>这样智能体能自己验证工作成果，而不是靠猜。</p></div>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>如果你已经解释过不止一次，它就该写进 CLAUDE.md。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 08 — MEMORY, UP CLOSE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>记忆细看 · 第2部分（共3部分）</span>
+        <span data-ed>08 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>值得被特意记住的东西</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:50px;" data-ed>会话结束后，什么应该被留下来？</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed>CLAUDE.md 是静态的——写一次，每次会话都一样。记忆不同：它会不断累积，怎么组织由你决定。下面是一种可行的分类方式——不是 Claude Code 强制规定的格式，只是一种值得借鉴的做法。</p>
+        </div>
+
+        <div class="anatomy-table">
+            <div class="anatomy-row reveal" style="transition-delay:.04s">
+                <div class="anatomy-name"><span class="num" data-ed>01</span><span class="nm" data-ed>用户</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>记录的内容</span><p data-ed>你的角色、偏好，以及你喜欢的工作方式。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>示例</span><p data-ed>「喜欢简短的回复，合并前会 review 每一处改动。」</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.08s">
+                <div class="anatomy-name"><span class="num" data-ed>02</span><span class="nm" data-ed>反馈</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>记录的内容</span><p data-ed>纠正和确认——什么该避免，什么是有效的。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>示例</span><p data-ed>「集成测试里不要 mock 数据库——之前出过事故。」</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.12s">
+                <div class="anatomy-name"><span class="num" data-ed>03</span><span class="nm" data-ed>项目</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>记录的内容</span><p data-ed>决策、截止日期，以及代码本身看不出来的持续性背景信息。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>示例</span><p data-ed>「认证重写是合规驱动的，不是代码清理——范围要按这个来定。」</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.16s">
+                <div class="anatomy-name"><span class="num" data-ed>04</span><span class="nm" data-ed>参考</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>记录的内容</span><p data-ed>指向外部真正、最新答案所在位置的指针。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>示例</span><p data-ed>「Bug 都记录在 Linear 的 INGEST 项目里，不是 GitHub Issues。」</p></div>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>记忆不是每次对话的逐字记录——而是少数几个、值得永远不用再解释一遍的事实。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 09 — RAG, UP CLOSE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>RAG 细看 · 第2部分（共3部分）</span>
+        <span data-ed>09 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>靠检索，不靠死记</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:50px;" data-ed>有些语料库，大到根本没法整个交出去——那就别整个交。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>一个200个文件的代码库，一份记录了五年决策的 wiki，一份客服工单存档——这些东西没有一个能塞进上下文窗口，而且对任何单一问题来说，里面大部分内容都是无关的。RAG 的工作，就是只取出真正相关的那一小片，并且在需要的那一刻取出来。</p>
+        </div>
+
+        <div class="flow-diagram reveal">
+            <div class="flow-step">
+                <span class="fn" data-ed>步骤 1</span>
+                <span class="ft" data-ed>分块与嵌入</span>
+                <span class="fd" data-ed>把文档拆成小块，把每一块转换成一个能体现其含义的向量。</span>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step">
+                <span class="fn" data-ed>步骤 2</span>
+                <span class="ft" data-ed>存储</span>
+                <span class="fd" data-ed>把这些向量建立索引，这样任何新问题的最接近匹配都能被快速找到。</span>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step">
+                <span class="fn" data-ed>步骤 3</span>
+                <span class="ft" data-ed>检索</span>
+                <span class="fd" data-ed>找出和当前问题在含义上最接近的那些块。</span>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step" style="border-color:var(--orange);">
+                <span class="fn" style="color:var(--orange);" data-ed>步骤 4</span>
+                <span class="ft" style="color:var(--orange);" data-ed>增强</span>
+                <span class="fd" data-ed>在模型回答之前，把这些块放进上下文里。</span>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>CLAUDE.md 和记忆，是模型一直都有的东西。RAG，是它按需去要来的东西。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 10 — CHOOSING THE RIGHT LAYER
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>选对层次 · 第2部分（共3部分）</span>
+        <span data-ed>10 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>让层次匹配问题的形状</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>一个简单的判断标准：它多久变一次，体量有多大？</h2>
+        </div>
+
+        <div class="map-list reveal">
+            <div class="map-item">
+                <span class="map-num" data-ed>稳定的事实</span>
+                <div class="map-text">
+                    <span class="mt" data-ed>→ CLAUDE.md</span>
+                    <span class="md" data-ed>很少变化，体量小。「我们用 pnpm，不用 npm。」「测试放在 /tests，结构对应 /src。」</span>
+                </div>
+            </div>
+            <div class="map-item">
+                <span class="map-num" data-ed>持久的决策</span>
+                <div class="map-text">
+                    <span class="mt" data-ed>→ 记忆</span>
+                    <span class="md" data-ed>随时间累积。「上个季度我们否决了 GraphQL——见 ADR-012。」「这位用户想要 PR 描述，不要行内注释。」</span>
+                </div>
+            </div>
+            <div class="map-item">
+                <span class="map-num" data-ed>庞大或不断变化的语料</span>
+                <div class="map-text">
+                    <span class="mt" data-ed>→ RAG</span>
+                    <span class="md" data-ed>大到装不下，而且还在持续增长。整个代码库。客服工单历史。产品 wiki。</span>
+                </div>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>大多数项目需要这三层都用上。大多数上下文债务，都来自跳过了其中一层。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 11 — CONTEXT DEBT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>上下文债务 · 第3部分（共3部分）</span>
+        <span data-ed>11 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>在沉默中累积的债务</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:50px;" data-ed>上下文债务，是技术债务那位更安静的表亲。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>技术债务，是那些能跑、但你每碰一次成本就更高一点的代码。上下文债务是同样的想法，往上挪了一层：智能体要把活干好真正需要知道的东西，和实际已经扎根在 CLAUDE.md、记忆与可检索文档里的东西，两者之间的缺口。它不会表现为一个失败的测试。它表现为：每一次会话，都比本该有的样子更困惑一点。</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>这个月，你已经第三次跟 Claude 解释同一个约定了。</li>
+            <li data-ed>它很自信地违反了一条确实存在的规则——只是这条规则它根本看不到。</li>
+            <li data-ed>「上周明明不是这样的」——却没有任何记录说明改了什么、为什么改。</li>
+            <li data-ed>一个新来的同事，无论是人还是智能体，都要花上好几天才能上手，因为什么都没写下来。</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>和技术债务一样，它会悄悄地越滚越大——直到某次会话搞砸到你不得不注意为止。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 12 — ANATOMY OF CONTEXT DEBT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>上下文债务的解剖 · 第3部分（共3部分）</span>
+        <span data-ed>12 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>五种你很熟悉的失败模式</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>它会以五种方式出现。</h2>
+        </div>
+
+        <div class="anatomy-table">
+            <div class="anatomy-row reveal" style="transition-delay:.04s">
+                <div class="anatomy-name"><span class="num" data-ed>01</span><span class="nm" data-ed>缺失的 CLAUDE.md</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>表现形式</span><p data-ed>没有扎根文件，或者只有一份一年前 README 里的三句话。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>代价</span><p data-ed>每次会话都从零开始；约定要么被重新解释，要么被重新瞎猜。</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.08s">
+                <div class="anatomy-name"><span class="num" data-ed>02</span><span class="nm" data-ed>过时的记忆</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>表现形式</span><p data-ed>曾经是对的、已保存下来的事实，但项目早已发展到了别的阶段。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>代价</span><p data-ed>自信满满地给出错误答案，引用的还是一个早已被推翻的决策。</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.12s">
+                <div class="anatomy-name"><span class="num" data-ed>03</span><span class="nm" data-ed>没有示例</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>表现形式</span><p data-ed>规则说得很抽象——「遵循我们的约定」——却没有任何具体的东西可以对照。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>代价</span><p data-ed>模型会按自己的方式去理解这条规则——听起来合理，却很少是对的。</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.16s">
+                <div class="anatomy-name"><span class="num" data-ed>04</span><span class="nm" data-ed>相互冲突的指令</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>表现形式</span><p data-ed>CLAUDE.md 说一套，代码注释说另一套，记忆里又是第三套。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>代价</span><p data-ed>模型会悄悄选一个；你只有等出问题了才会知道它选了哪个。</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.2s">
+                <div class="anatomy-name"><span class="num" data-ed>05</span><span class="nm" data-ed>未经扎根的 RAG 语料库</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>表现形式</span><p data-ed>一份只建过一次、从未更新过的检索索引，指向的还是已经过时的文档。</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>代价</span><p data-ed>检索「成功」了——它给出的答案自信满满、格式工整，却早已过时。</p></div>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>这些都不是什么稀奇的问题。这五种都很常见——而且每一种单独拿出来，修复起来都比你想象的要快。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 13 — THE BRIDGE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>桥接篇</span>
+        <span data-ed>13 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>你即将要扎根的这个项目</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>从理论，到一次真正的审计。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>到目前为止，每一层都还停留在抽象的讲解里。现在，我们来真的——在一个你们谁都没见过的项目上，它有着大多数真实项目都有的那种上下文缺口：没有 CLAUDE.md，决策埋在旧的 <code>Slack</code> 讨论里，一个好几个月没人打开过的 <code>/docs</code> 文件夹。</p>
+        </div>
+        <p class="lead reveal" data-ed>认识一下 <b>Ledger</b>——一个即将被好好扎根的订单/计费服务。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 14 — LAB PREVIEW
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>实验预告 · 第4部分</span>
+        <span data-ed>14 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>现在轮到你了</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>审计它。为它扎根。看看差别。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>今天的实验：拿 Ledger——一个真实可运行、却完全没有扎根的订单/计费服务——通过四个步骤，给它一份 CLAUDE.md、一条记忆条目，以及一个指向它自己文档的指引。然后用同一个问题问 Claude 两次：扎根之前，和扎根之后。</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>一个真实的订单/计费服务，已经存在两年，由一个早已转去做别的事的团队搭建。</li>
+            <li data-ed>没有 CLAUDE.md。一个好几个月没人打开过的 <code>/docs</code> 文件夹。约定只存在于人们的脑子里。</li>
+            <li data-ed>你的任务：用四个步骤为它扎根，然后观察输出是否真的发生了变化。</li>
+            <li data-ed>留意：你选择写下什么、留下什么不写——这个选择本身，才是真正的技能。</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 15 — LAB WALKTHROUGH, STEP 1: AUDIT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>实验演练 · 第1步（共4步）</span>
+        <span data-ed>15 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>先冷读一遍，什么都别写</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>像 Claude 一样，冷读一遍 Ledger。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>在写任何东西之前，先审计它：以全无背景知识的状态重新打开这个代码库，试着回答「要安全地修改这段代码，我需要知道什么？」记下每一处你靠猜、靠假设，或者要翻 git 历史、翻 Slack 才能弄明白的地方。</p>
+        </div>
+        <div class="case-callout reveal">
+            <span class="cl" data-ed>来自 ledger</span>
+            <p data-ed>支付重试逻辑里，没有任何注释解释它的幂等键要求。唯一写下过这件事的地方，是一条六个月前的 Slack 讨论。</p>
+        </div>
+        <p class="lead reveal" data-ed>你刚才费力去找的那些东西——那才是真正的审计。一旦你亲眼盯着它，上下文债务就一点都不抽象了。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 16 — LAB WALKTHROUGH, STEP 2: WRITE THE CLAUDE.md
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>实验演练 · 第2步（共4步）</span>
+        <span data-ed>16 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>对什么才是真正承重的内容，要狠一点</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>只写下那些你需要解释第二遍的东西。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>把审计结果变成一份 CLAUDE.md。诱惑在于想把所有东西都记下来——一定要克制住。一份十页长的 CLAUDE.md，本身就是一种上下文债务；它占用的，正是你在第1部分看到的那份预算。坚持用前面那五个部分——概览、约定、该做/不该做、架构说明、测试命令——并且对什么才是真正承重的内容，要狠一点。</p>
+        </div>
+        <div class="case-callout reveal">
+            <span class="cl" data-ed>来自 ledger</span>
+            <p data-ed>第1步里那条幂等键约定，在「该做 / 不该做」下面变成了一行：「调用支付网关时永远不能不带幂等键——参见 <code>PaymentClient.charge()</code>。」</p>
+        </div>
+        <p class="lead reveal" data-ed>好的扎根都是简短的。这不是一种限制——这就是重点本身。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 17 — LAB WALKTHROUGH, STEP 3: SET UP MEMORY
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>实验演练 · 第3步（共4步）</span>
+        <span data-ed>17 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>记的是现在为真的事，不是永远为真的事</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>记下那个不在任何文件里的决策。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>CLAUDE.md 记录的是永远为真的事。记忆记录的是现在为真、在工作过程中了解到的事。今天的任务：找出一个埋在 Slack 或团队集体记忆里的持久决策——比如「我们决定 v1 不支持部分退款」——把它存成一条项目记忆，这样下一个人，或者下一次会话，就不用再费劲重新发现一遍。</p>
+        </div>
+        <div class="case-callout reveal">
+            <span class="cl" data-ed>来自 ledger</span>
+            <p data-ed>「部分退款功能从 v1 推迟（Slack，三月）。要重新引入，需要产品方批准，不只是一个工程上的修复。」一句话，存一次，再也不用重新争论。</p>
+        </div>
+        <p class="lead reveal" data-ed>一条记忆，写下来很便宜，丢掉了很昂贵。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 18 — LAB WALKTHROUGH, STEP 4: CONNECT DOCS & OBSERVE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>实验演练 · 第4步（共4步）</span>
+        <span data-ed>18 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>闭合循环</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:52px;" data-ed>同一个问题，问两次。对比两次的答案。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>让 Claude 连接到 Ledger 现有的 <code>/docs</code> 文件夹，然后用一个你真的会问这个服务的问题，问它两次——一次在任何扎根之前，一次在扎根之后。</p>
+        </div>
+
+        <div class="compare-grid reveal">
+            <div class="flow-step">
+                <span class="fn" data-ed>扎根之前</span>
+                <span class="ft" style="font-size:22px;" data-ed>「我能安全地给 Ledger 加上部分退款功能吗？」</span>
+                <span class="fd" style="font-size:16.5px;" data-ed>一份通用的实现思路，完全不知道这个功能已经被刻意推迟过——悄悄重新打开了一个已经关闭的决策。</span>
+            </div>
+            <div class="flow-step" style="border-color:var(--orange);">
+                <span class="fn" style="color:var(--orange);" data-ed>扎根之后</span>
+                <span class="ft" style="font-size:22px;color:var(--orange);" data-ed>同一个问题，同一个服务</span>
+                <span class="fd" style="font-size:16.5px;" data-ed>正确地把那条记忆条目翻出来——「从 v1 推迟，需要产品方批准」——而不是把它当成一个从零开始的功能请求来处理。</span>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>这份差别，就是你刚刚建立起来的一切，被一组答案的对比清清楚楚地照了出来。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 19 — YOUR TURN: OPEN THE LAB GUIDE
+     ============================================================ -->
+<section class="slide orange">
+    <div class="chrome top">
+        <span data-ed>轮到你了</span>
+        <span data-ed>19 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <span class="kicker reveal" data-ed>开始</span>
+            <h1 class="display reveal-wipe mt-md" style="font-size:140px;text-transform:none;" data-ed>打开实验指南。</h1>
+        </div>
+        <ul class="bs-list reveal">
+            <li data-ed>审计——冷读一遍，记下每一个缺口。</li>
+            <li data-ed>写 CLAUDE.md——五个部分，不多不少。</li>
+            <li data-ed>搭建记忆——一个持久决策，记一次就好。</li>
+            <li data-ed>让 Claude 连接文档——然后问你真正的问题，扎根前和扎根后各问一次。</li>
+        </ul>
+        <p class="lead reveal" data-ed>大约35–40分钟。之后我们再集合。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 20 — APPLY: AUDIT YOUR OWN PROJECT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>应用 · 你的练习</span>
+        <span data-ed>20 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>本周的练习</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>审计你自己项目的上下文债务。</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>选一个你经常参与的真实项目。</li>
+            <li data-ed>做同样的审计：一次全新的会话，需要知道哪些根本没写在任何地方的东西？</li>
+            <li data-ed>为它写一份，或改进现有的 CLAUDE.md——五个部分，不多不少。</li>
+            <li data-ed>至少搭建一条持久记忆——记下一个总是差点又要被重新解释一遍的决策。</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>把你最大的发现带到下次课程——不管是你自己的，还是别人的。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 21 — OUTCOME + LOOKING AHEAD TO WEEK 3
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>展望接下来</span>
+        <span data-ed>21 — 21</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>你现在已经知道的 · 接下来是什么</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:54px;" data-ed>你现在已经知道，如何让一个智能体在你的世界里扎根。接下来：给它新的能力。</h2>
+        </div>
+
+        <div class="reveal">
+            <span class="kicker" data-ed>今日要点</span>
+            <div class="outcome-grid mt-md" style="grid-template-columns:repeat(3,1fr);">
+                <div class="outcome-item">
+                    <span class="on" data-ed>词汇</span>
+                    <span class="ot" data-ed>CLAUDE.md、记忆、RAG——以及到底什么时候该用哪一个</span>
+                </div>
+                <div class="outcome-item">
+                    <span class="on" data-ed>技能</span>
+                    <span class="ot" data-ed>审计上下文债务，并在不超支预算的情况下修复它</span>
+                </div>
+                <div class="outcome-item">
+                    <span class="on" data-ed>产出物</span>
+                    <span class="ot" data-ed>今天在 Ledger 上构建的一份真正的 CLAUDE.md + 一条记忆条目</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="reveal" style="background:var(--orange);color:var(--ink);
+                     margin:0 calc(-1 * var(--pad-x));padding:30px var(--pad-x);
+                     display:flex;align-items:center;gap:48px;">
+            <span style="font-weight:900;font-size:56px;line-height:1;letter-spacing:-.03em;white-space:nowrap;" data-ed>第3周 →</span>
+            <p style="font-size:var(--body);line-height:1.4;color:var(--ink-75);" data-ed><b style="color:var(--ink);">Skill：把可复用的能力打包起来。</b>把你反复在做的事情，变成 Claude 可以自行调用的 Skill——从那些早就长得像一份操作手册的流程开始。</p>
+        </div>
+    </div>
+</section>
+
+</main>
+</div>
+
+<!-- Presentation chrome (outside the scaled stage) -->
+<div class="deck-counter"><span class="cur" id="curNum">01</span> / <span id="totNum">21</span></div>
+<nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+<!-- Inline editing affordance -->
+<div class="edit-hotzone" aria-hidden="true"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">✎</button>
+<div class="edit-hint">EDIT MODE · click any text · Ctrl+S saves · ⤓ exports</div>
+
+<script>
+/* ===========================================================
+   SLIDE CONTROLLER
+   =========================================================== */
+class SlidePresentation{
+    constructor(){
+        this.stage=document.getElementById('deckStage');
+        this.slides=[...document.querySelectorAll('.slide')];
+        this.current=0;
+        this.buildDots();
+        this.setupStageScale();
+        this.setupNav();
+        this.show(0);
+    }
+    setupStageScale(){
+        const scale=()=>{
+            const f=Math.min(window.innerWidth/1920,window.innerHeight/1080);
+            const x=(window.innerWidth-1920*f)/2;
+            const y=(window.innerHeight-1080*f)/2;
+            this.stage.style.transform=`translate(${x}px,${y}px) scale(${f})`;
+        };
+        scale();
+        window.addEventListener('resize',scale);
+    }
+    buildDots(){
+        const wrap=document.getElementById('navDots');
+        this.slides.forEach((_,i)=>{
+            const b=document.createElement('button');
+            b.setAttribute('aria-label','Go to slide '+(i+1));
+            b.addEventListener('click',()=>this.show(i));
+            wrap.appendChild(b);
+        });
+        this.dots=[...wrap.children];
+        document.getElementById('totNum').textContent=String(this.slides.length).padStart(2,'0');
+    }
+    setupNav(){
+        document.addEventListener('keydown',e=>{
+            if(e.target.getAttribute&&e.target.getAttribute('contenteditable')==='true')return;
+            if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();this.next();}
+            else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.prev();}
+            else if(e.key==='Home'){this.show(0);}
+            else if(e.key==='End'){this.show(this.slides.length-1);}
+        });
+        let wheelLock=false;
+        window.addEventListener('wheel',e=>{
+            if(document.body.classList.contains('editing'))return;
+            if(wheelLock)return;
+            if(Math.abs(e.deltaY)<24)return;
+            wheelLock=true;setTimeout(()=>wheelLock=false,700);
+            e.deltaY>0?this.next():this.prev();
+        },{passive:true});
+        let sx=0,sy=0;
+        window.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+        window.addEventListener('touchend',e=>{
+            const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+            if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){dx<0?this.next():this.prev();}
+        },{passive:true});
+    }
+    show(i){
+        this.current=Math.max(0,Math.min(i,this.slides.length-1));
+        this.slides.forEach((s,n)=>{
+            s.classList.toggle('active',n===this.current);
+            s.classList.toggle('visible',n===this.current);
+        });
+        this.dots.forEach((d,n)=>d.classList.toggle('on',n===this.current));
+        document.getElementById('curNum').textContent=String(this.current+1).padStart(2,'0');
+    }
+    next(){this.show(this.current+1);}
+    prev(){this.show(this.current-1);}
+}
+
+/* ===========================================================
+   INLINE EDITOR
+   =========================================================== */
+class Editor{
+    constructor(){
+        this.isActive=false;
+        this.els=[...document.querySelectorAll('[data-ed]')];
+        this.restore();
+        this.wire();
+    }
+    key(){return 'broadside-deck-week2-zh::'+location.pathname;}
+    restore(){
+        try{
+            const saved=JSON.parse(localStorage.getItem(this.key())||'null');
+            if(saved&&Array.isArray(saved)&&saved.length===this.els.length){
+                this.els.forEach((el,i)=>{if(saved[i]!=null)el.innerHTML=saved[i];});
+            }
+        }catch(_){}
+    }
+    save(){
+        try{localStorage.setItem(this.key(),JSON.stringify(this.els.map(el=>el.innerHTML)));}catch(_){}
+    }
+    toggleEditMode(){
+        this.isActive=!this.isActive;
+        document.body.classList.toggle('editing',this.isActive);
+        document.getElementById('editToggle').classList.toggle('active',this.isActive);
+        this.els.forEach(el=>{
+            el.setAttribute('contenteditable',this.isActive?'true':'false');
+            if(this.isActive){el.addEventListener('input',this._oninput);}
+        });
+    }
+    _oninput=()=>this.save();
+    export(){
+        const clone=document.documentElement.cloneNode(true);
+        clone.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+        clone.querySelectorAll('.edit-hotzone,.edit-toggle,.edit-hint').forEach(n=>n.remove());
+        const html='<!DOCTYPE html>\n'+clone.outerHTML;
+        const blob=new Blob([html],{type:'text/html'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='week2-context-engineering-broadside-zh.html';
+        a.click();
+    }
+    wire(){
+        const toggle=document.getElementById('editToggle');
+        const hotzone=document.querySelector('.edit-hotzone');
+        let hideTimeout=null;
+        toggle.addEventListener('click',()=>this.toggleEditMode());
+        hotzone.addEventListener('mouseenter',()=>{clearTimeout(hideTimeout);toggle.classList.add('show');});
+        hotzone.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        toggle.addEventListener('mouseenter',()=>clearTimeout(hideTimeout));
+        toggle.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        hotzone.addEventListener('click',()=>this.toggleEditMode());
+        document.addEventListener('keydown',e=>{
+            if((e.key==='e'||e.key==='E')&&e.target.getAttribute&&e.target.getAttribute('contenteditable')!=='true'){this.toggleEditMode();}
+            if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();this.save();this.flash('saved');}
+            if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='e'&&this.isActive){e.preventDefault();this.export();}
+        });
+    }
+    flash(msg){
+        const hint=document.querySelector('.edit-hint');
+        if(!hint)return;const prev=hint.textContent;hint.textContent=msg.toUpperCase();
+        setTimeout(()=>hint.textContent=prev,1000);
+    }
+}
+
+const deck=new SlidePresentation();
+const editor=new Editor();
+</script>
+</body>
+</html>
