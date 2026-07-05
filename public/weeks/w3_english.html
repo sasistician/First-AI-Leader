@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 3 — Skills | The AI-First Engineer</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700;800;900&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================
+   THEME TOKENS — CORAL PALETTE (matches week0/week1 broadside)
+   =========================================================== */
+:root{
+    --ink:#1A0D0A;
+    --ink-alt:#221210;
+    --orange:#D84D3C;
+    --cream:#FBF5F0;
+    --cream-muted:#9C8078;
+    --cream-hint:#604840;
+    --border-dark:#2C1510;
+    --ink-75:rgba(26,13,10,.75);
+    --ink-55:rgba(26,13,10,.55);
+    --ink-45:rgba(26,13,10,.45);
+    --ink-20:rgba(26,13,10,.20);
+
+    --font-display:'Barlow',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+
+    --display:184px;
+    --h1:140px;
+    --h2:86px;
+    --h3:50px;
+    --stat:104px;
+    --lead:31px;
+    --body:23px;
+    --caption:17px;
+    --label:14px;
+
+    --pad-x:106px;
+    --pad-y:62px;
+    --gap-lg:40px;
+    --gap-md:24px;
+    --gap-sm:12px;
+
+    --ease:cubic-bezier(0.16,1,0.3,1);
+    --ease-slide:cubic-bezier(0.77,0,0.175,1);
+    --stage-bg:#000;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ===========================================================
+   FIXED 16:9 STAGE (viewport-base.css contents)
+   =========================================================== */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg,#fff);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff);}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+img,video,canvas,svg{max-width:100%;max-height:100%;}
+.deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000;}
+@media print{
+    html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
+    .deck-viewport{position:static;overflow:visible;background:#fff;}
+    .deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none;}
+    .slide{position:relative;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
+    .slide:last-child{break-after:auto;page-break-after:auto;}
+    .deck-controls{display:none!important;}
+}
+@media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.2s!important;}
+}
+
+/* ===========================================================
+   SLIDE FRAME
+   =========================================================== */
+.slide{
+    display:flex;flex-direction:column;
+    padding:var(--pad-y) var(--pad-x);
+    background:#FDEAE4;color:var(--ink);
+    font-family:var(--font-display);
+}
+.slide.orange{background:#FDEAE4;color:var(--ink);}
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;}
+
+/* ===========================================================
+   CHROME
+   =========================================================== */
+.chrome{display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);}
+.chrome.top{border-bottom:1px solid var(--ink-20);padding-bottom:var(--gap-sm);}
+.chrome.bot{border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);margin-top:var(--gap-md);}
+
+/* ===========================================================
+   TYPE
+   =========================================================== */
+.kicker{font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.display{font-weight:900;font-size:var(--display);line-height:.88;letter-spacing:-.04em;text-transform:lowercase;}
+.h2{font-weight:800;font-size:var(--h2);line-height:1.02;letter-spacing:-.03em;}
+.h3{font-weight:700;font-size:var(--h3);line-height:1.08;letter-spacing:-.02em;}
+.lead{font-weight:400;font-size:var(--lead);line-height:1.45;color:var(--ink-75);}
+.body{font-size:var(--body);line-height:1.55;color:var(--ink-75);}
+
+.rule{width:36px;height:2px;background:var(--orange);border:0;}
+
+.broadside-num{font-family:var(--font-mono);font-size:22px;font-weight:500;
+    letter-spacing:.1em;color:var(--ink-45);}
+
+.tag{display:inline-block;font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);
+    border:1px solid var(--orange);padding:.4em .8em;}
+
+/* ===========================================================
+   BROADSIDE BULLET LIST
+   =========================================================== */
+.bs-list{list-style:none;}
+.bs-list li{position:relative;padding-left:1.7em;font-size:var(--lead);line-height:1.32;
+    color:var(--ink);margin-bottom:var(--gap-md);}
+.bs-list li:last-child{margin-bottom:0;}
+.bs-list li::before{content:"/";position:absolute;left:0;top:0;color:var(--orange);
+    font-family:var(--font-mono);font-weight:700;}
+.bs-list.small li{font-size:20px;line-height:1.4;}
+
+/* ===========================================================
+   OUTCOME PILLARS
+   =========================================================== */
+.outcome-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+    border-top:1px solid var(--ink-20);padding-top:20px;}
+.outcome-item{padding-right:20px;}
+.outcome-item .on{display:block;font-family:var(--font-mono);font-size:11px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);margin-bottom:6px;}
+.outcome-item .ot{font-weight:800;font-size:20px;line-height:1.1;color:var(--ink);}
+
+/* ===========================================================
+   TODAY'S MAP (cover slide, right panel) / decision lists
+   =========================================================== */
+.map-list{display:flex;flex-direction:column;}
+.map-item{display:flex;gap:24px;align-items:flex-start;padding:18px 0;border-top:1px solid var(--ink-20);}
+.map-item:first-child{border-top:none;padding-top:0;}
+.map-num{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:.1em;
+    color:var(--orange);min-width:64px;flex-shrink:0;padding-top:4px;}
+.map-text .mt{font-weight:800;font-size:22px;color:var(--ink);line-height:1.2;}
+.map-text .md{font-size:15px;color:var(--ink-55);margin-top:5px;line-height:1.45;}
+
+/* ===========================================================
+   FLOW DIAGRAM / COMPARE CARDS
+   =========================================================== */
+.flow-diagram{display:flex;align-items:stretch;}
+.flow-step{flex:1;border:1px solid var(--ink-20);padding:30px 28px;display:flex;flex-direction:column;gap:12px;}
+.flow-step .fn{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.flow-step .fc{font-family:var(--font-mono);font-weight:700;font-size:30px;color:var(--ink);letter-spacing:-.01em;}
+.flow-step .ft{font-weight:800;font-size:24px;line-height:1.1;color:var(--ink);}
+.flow-step .fd{font-size:16px;line-height:1.5;color:var(--ink-55);}
+.flow-arrow{width:54px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:28px;color:var(--orange);font-weight:700;flex-shrink:0;}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;}
+
+/* ===========================================================
+   CASE CALLOUT / STAT
+   =========================================================== */
+.stat-num{font-weight:900;font-size:var(--stat);line-height:.85;letter-spacing:-.03em;color:var(--orange);}
+.stat-label{font-weight:800;font-size:var(--h2);line-height:1;letter-spacing:-.03em;color:var(--ink);margin-top:8px;}
+.case-callout{border-left:3px solid var(--orange);padding:4px 0 4px 28px;}
+.case-callout .cl{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-45);margin-bottom:6px;display:block;}
+.case-callout p{font-size:18px;line-height:1.55;color:var(--ink-75);}
+
+/* ===========================================================
+   ANATOMY TABLE
+   =========================================================== */
+.anatomy-table{display:flex;flex-direction:column;flex:1;justify-content:center;min-height:0;}
+.anatomy-row{display:grid;grid-template-columns:300px 1fr 1.15fr;gap:40px;align-items:start;
+    border-top:1px solid var(--ink-20);padding:17px 0;}
+.anatomy-row:last-child{border-bottom:1px solid var(--ink-20);}
+.anatomy-name .num{display:block;font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.anatomy-name .nm{font-weight:800;font-size:27px;line-height:1.1;color:var(--ink);}
+.anatomy-cell .lbl{display:block;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-45);margin-bottom:6px;}
+.anatomy-cell p{font-size:17px;line-height:1.5;color:var(--ink-75);}
+
+/* 3-cell variant: three prose cells (no bold name column) — used where the
+   first column holds a full phrase/quote rather than a short label. */
+.anatomy-table.cells-3 .anatomy-row{grid-template-columns:1fr .62fr 1.3fr;}
+.anatomy-table.cells-3 .anatomy-cell:first-child p{font-weight:700;color:var(--ink);}
+
+/* ===========================================================
+   THREE-COLUMN ARCHITECTURE / LAYER COMPARISON
+   =========================================================== */
+.arch-diagram{display:flex;align-items:stretch;}
+.arch-col{flex:1;border:1px solid var(--ink-20);padding:30px 34px;display:flex;flex-direction:column;gap:16px;}
+.arch-col .ac-title{font-family:var(--font-mono);font-size:13px;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--orange);}
+.arch-layer{border-top:2px solid var(--ink-20);padding:14px 0 0;}
+.arch-layer.attn{border-color:var(--orange);}
+.arch-layer .al-name{font-weight:800;font-size:20px;color:var(--ink);line-height:1.15;}
+.arch-layer .al-desc{font-size:14px;line-height:1.4;color:var(--ink-55);margin-top:4px;}
+.arch-col .ac-x{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;color:var(--ink-45);
+    text-transform:uppercase;text-align:center;padding-top:6px;}
+
+/* ===========================================================
+   CONTEXT WINDOW BUDGET BAR
+   =========================================================== */
+.ctx-budget-bar{display:flex;width:100%;height:84px;border:1px solid var(--ink-20);}
+.ctx-budget-seg{display:flex;flex-direction:column;justify-content:center;padding:0 22px;
+    border-right:1px solid var(--cream);overflow:hidden;}
+.ctx-budget-seg:last-child{border-right:none;}
+.ctx-budget-seg .cbs-pct{font-family:var(--font-mono);font-weight:700;font-size:22px;}
+.ctx-budget-seg .cbs-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;margin-top:3px;white-space:nowrap;}
+.ctx-budget-legend{display:flex;gap:34px;margin-top:20px;flex-wrap:wrap;}
+.ctx-budget-legend .cbl-item{display:flex;align-items:flex-start;gap:10px;max-width:280px;}
+.ctx-budget-legend .cbl-dot{width:12px;height:12px;flex-shrink:0;margin-top:4px;}
+.ctx-budget-legend .cbl-text{font-size:14.5px;color:var(--ink-55);line-height:1.35;}
+.ctx-budget-legend .cbl-text b{color:var(--ink);}
+
+/* Spacing helpers */
+.stack>*+*{margin-top:var(--gap-md);}
+.stack-lg>*+*{margin-top:var(--gap-lg);}
+.mt-sm{margin-top:var(--gap-sm);}
+.mt-md{margin-top:var(--gap-md);}
+.mt-lg{margin-top:var(--gap-lg);}
+.maxw{max-width:62%;}
+
+/* ===========================================================
+   ANIMATIONS
+   =========================================================== */
+.reveal{opacity:0;transform:translateY(34px);
+    transition:opacity .6s var(--ease),transform .6s var(--ease);}
+.slide.visible .reveal{opacity:1;transform:none;}
+.reveal-wipe{opacity:0;clip-path:inset(0 0 100% 0);
+    transition:opacity .7s var(--ease),clip-path .9s var(--ease-slide);}
+.slide.visible .reveal-wipe{opacity:1;clip-path:inset(0 0 0 0);}
+
+/* ===========================================================
+   PRESENTATION CHROME
+   =========================================================== */
+.deck-counter{position:fixed;right:26px;bottom:22px;z-index:1000;
+    font-family:var(--font-mono);font-size:13px;letter-spacing:.16em;
+    color:rgba(251,245,240,.55);}
+.deck-counter .cur{color:var(--orange);}
+.nav-dots{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1000;
+    display:flex;gap:12px;}
+.nav-dots button{width:9px;height:9px;border-radius:50%;border:1px solid rgba(251,245,240,.4);
+    background:transparent;cursor:pointer;padding:0;transition:all .3s var(--ease);}
+.nav-dots button.on{background:var(--orange);border-color:var(--orange);transform:scale(1.15);}
+
+/* Inline editing */
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.edit-toggle{position:fixed;top:18px;left:18px;z-index:10001;width:46px;height:46px;
+    border:1px solid var(--orange);background:var(--ink);color:var(--cream);font-size:18px;
+    cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}
+.edit-toggle.active{background:var(--orange);color:var(--ink);}
+body.editing [data-ed]{outline:1px dashed rgba(216,77,60,.7);outline-offset:4px;cursor:text;}
+body.editing [data-ed]:focus{outline:1px solid var(--orange);}
+.edit-hint{position:fixed;top:18px;left:74px;z-index:10001;font-family:var(--font-mono);
+    font-size:12px;letter-spacing:.1em;color:var(--cream-muted);background:var(--ink);
+    padding:14px 12px;border:1px solid var(--border-dark);display:none;}
+body.editing .edit-hint{display:block;}
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- ============================================================
+     SLIDE 01 — COVER
+     ============================================================ -->
+<section class="slide orange active">
+    <header style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span class="broadside-num reveal" data-ed>№ 01 — 24</span>
+        <span class="broadside-num reveal" data-ed>Week 3 · Skills · 90-min live session</span>
+    </header>
+
+    <div class="slide-body" style="flex-direction:row;align-items:stretch;gap:0;">
+        <!-- LEFT: hero -->
+        <div style="flex:1.1;display:flex;flex-direction:column;justify-content:center;
+                    padding-right:72px;border-right:1px solid var(--ink-20);">
+            <div class="kicker reveal" data-ed>the ai-first engineer · claude code builder program</div>
+            <div class="rule reveal mt-md"></div>
+            <h1 class="display reveal-wipe mt-md" style="text-transform:none;" data-ed>Packaging.</h1>
+            <h2 class="h3 reveal mt-md" style="font-weight:700;" data-ed>skills · packaging reusable capabilities</h2>
+            <p class="lead reveal mt-md" data-ed>Last week: grounding Claude in your world — CLAUDE.md, memory, RAG. Today: even a fully
+                grounded agent still makes you re-explain how to do the recurring stuff, every single
+                time it comes up. <b>Skills are how you package that judgment once, so you stop repeating
+                yourself.</b></p>
+        </div>
+
+        <!-- RIGHT: today's arc -->
+        <div style="flex:0.9;display:flex;flex-direction:column;justify-content:center;
+                    padding-left:72px;">
+            <span class="kicker reveal" data-ed>today's arc · five stops</span>
+            <div class="map-list reveal mt-md">
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 1</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>The problem</span>
+                        <span class="md" data-ed>Why a grounded agent still needs the same procedure re-explained every time it recurs — and what a Skill actually is, compared to a prompt, a script, or a subagent.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 2</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Anatomy of a Skill</span>
+                        <span class="md" data-ed>SKILL.md, progressive disclosure, and a real worked example: the Skill that helped build this very deck.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 3</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Building your own</span>
+                        <span class="md" data-ed>A four-step process for turning a recurring task into a Skill that actually fires when it should.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 4</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Discovery &amp; invocation</span>
+                        <span class="md" data-ed>How Claude decides a Skill applies, and what loading one actually costs.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Apply</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Map your runbooks</span>
+                        <span class="md" data-ed>Find which of your team's playbooks are skill-shaped, and meet this week's lab project.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="display:flex;justify-content:space-between;align-items:flex-end;
+                   border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);">
+        <span class="body reveal" style="color:var(--ink-75);" data-ed>Bilal Farooq · 20 years in data science &amp; AI · six countries</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+            <span class="kicker reveal" data-ed>carrying over from week 2</span>
+            <span class="reveal" style="font-family:var(--font-mono);font-size:15px;letter-spacing:.08em;color:var(--orange);font-weight:600;" data-ed>CLAUDE.md + memory in place on Ledger · ready to build on</span>
+        </div>
+    </footer>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 02 — BRIDGE FROM WEEK 2
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Recap &amp; Bridge · From Week 2</span>
+        <span data-ed>02 — 24</span>
+    </div>
+
+    <div class="slide-body" style="flex-direction:row;gap:0;align-items:stretch;">
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-right:72px;border-right:1px solid var(--ink-20);">
+            <div class="kicker reveal" data-ed>before today</div>
+            <h2 class="h2 reveal mt-md" style="font-size:48px;" data-ed>You already grounded Claude in what your project is. That's not the same as what you do to it.</h2>
+            <p class="body reveal mt-md" data-ed>Last week you gave Ledger a CLAUDE.md, a first memory entry, and a pointer to its own
+                docs — durable facts about the project that persist across every session. That's
+                grounding, and it worked: the same question, asked before and after, got an
+                unrecognizably better answer the second time. But grounding is fact-shaped. It answers
+                "what's true about this codebase." It doesn't answer "here's the five-step procedure we
+                follow every time we do X" — that's process-shaped, and nothing from last week packages
+                it.</p>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-left:72px;">
+            <ul class="bs-list reveal">
+                <li data-ed>CLAUDE.md and memory hold static or slow-changing facts — conventions, decisions, pointers to where the real answer lives.</li>
+                <li data-ed>A recurring task is a procedure — a sequence of judgment calls, not a fact you can state once and be done.</li>
+                <li data-ed>Every time that task comes up, someone re-explains the procedure from scratch, in the prompt, from memory, hoping they remember every step.</li>
+            </ul>
+            <p class="lead reveal mt-lg" data-ed>Grounding solved what Claude knows about your world. It never solved the thing you keep re-typing.</p>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 03 — THE PROBLEM, STATED CONCRETELY
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Problem · Part 1</span>
+        <span data-ed>03 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>a real project, not a hypothetical</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:48px;" data-ed>Three engineers, one Ledger refund fix, three different procedures.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Ledger — grounded last week — now needs a new refund reason code. That's a five-step
+                procedure: check idempotency-key handling, append an entry to the audit log in the
+                house format, publish to the <code>billing-events</code> topic, extend the refund-state enum, and
+                add an integration test against the sandbox payment provider. It's well understood.
+                It's even written down, in a wiki page nobody opens mid-sprint. But it isn't a fact
+                about Ledger — it's a thing you <i>do</i> to Ledger — so it never made it into CLAUDE.md, and
+                three different engineers each explain it to Claude fresh, in their own words, from
+                memory.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Engineer A writes a careful five-step prompt. Ships clean.</li>
+            <li data-ed>Engineer B remembers four of the five steps. Ships without the sandbox integration test — nobody notices until the sandbox contract changes.</li>
+            <li data-ed>Engineer C doesn't know the procedure exists at all, and asks Claude to "just add a refund code." Claude does something reasonable. It's still wrong.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>The procedure was never the hard part. Getting it applied the same way, every time, without anyone re-typing it, is.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 04 — WHAT IS A SKILL?
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>What Is a Skill? · Part 1</span>
+        <span data-ed>04 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>the missing packaging layer</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:48px;" data-ed>A Skill is a procedure Claude can find, load, and follow — on its own.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Concretely: a folder with a <code>SKILL.md</code> file — frontmatter (<code>name</code> + <code>description</code>) plus
+                the steps — and, optionally, bundled scripts or reference docs. Claude reads your
+                current task, matches it against every Skill's description, and if one fits, loads it
+                and follows it. Nobody re-explains the refund-code procedure next time; it's a file, and
+                Claude goes and gets it.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>It's a file, not a habit.</b> Versioned, reviewable, and shareable like any other code — not something that lives only in one engineer's prompt history.</li>
+            <li data-ed><b>It's discoverable, not injected.</b> Claude decides relevance from the description; an unrelated task never loads it, and never pays its context cost.</li>
+            <li data-ed><b>It's judgment, not a macro.</b> Claude reads and follows the steps, adapting them to the situation at hand — the way a competent engineer follows a runbook rather than executing it byte-for-byte.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Same move as pulling a duplicated block out into a well-named function — except the caller deciding when to invoke it is Claude, using judgment rather than a fixed condition, and the steps themselves get adapted each call, not replayed byte-for-byte the way a function's would be.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 05 — COMPARISON, PART 1: FOUR WAYS TO HAND OFF A PROCEDURE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Spectrum · Part 1</span>
+        <span data-ed>05 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>four ways to hand off a procedure</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>Prompt, script, Skill, subagent — same goal, four different trade-offs.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:17px;" data-ed>Before building one, it's worth being precise about what a Skill actually replaces — and what it doesn't.</p>
+        </div>
+
+        <div class="anatomy-table">
+            <div class="anatomy-row reveal" style="transition-delay:.04s">
+                <div class="anatomy-name"><span class="num" data-ed>01</span><span class="nm" data-ed>Prompt</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it is</span><p data-ed>A one-off natural-language instruction, typed fresh or copy-pasted from a doc, a Slack thread, or your own memory.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Where the reuse actually comes from</span><p data-ed>None — you are the packaging. If you forget a step, or you're not the one prompting, the procedure doesn't happen.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.08s">
+                <div class="anatomy-name"><span class="num" data-ed>02</span><span class="nm" data-ed>Script</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it is</span><p data-ed>Deterministic code that executes a fixed procedure with zero judgment.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Where the reuse actually comes from</span><p data-ed>High for the exact case it was written for, zero the moment the task varies — and you still have to know it exists and run it yourself.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.12s">
+                <div class="anatomy-name"><span class="num" data-ed>03</span><span class="nm" data-ed>Skill</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it is</span><p data-ed>A packaged procedure (<code>SKILL.md</code> plus optional scripts/resources) that Claude discovers and follows using judgment.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Where the reuse actually comes from</span><p data-ed>Written once, fires automatically whenever a task matches its description — across sessions, projects, and teammates.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.16s">
+                <div class="anatomy-name"><span class="num" data-ed>04</span><span class="nm" data-ed>Subagent</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What it is</span><p data-ed>A separate, delegated agent invocation with its own context and tools, dispatched to do a bounded piece of work and report back.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Where the reuse actually comes from</span><p data-ed>The agent <i>type</i> is reusable (e.g. "code-reviewer"), but each call is a fresh, isolated unit of delegated work — not a shared recipe.</p></div>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>Notice the pattern: reusability climbs from prompt to Skill. But "more autonomous" isn't the same axis as "more reusable" — conflating them is where this gets misused. More on the next slide.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 06 — COMPARISON, PART 2: AUTONOMY AND REUSE AREN'T THE SAME AXIS
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>The Spectrum · Part 2</span>
+        <span data-ed>06 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>autonomy and reuse are not the same axis</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>Skills and subagents both use judgment. They differ on delegation, not on how much judgment gets applied.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed>The natural next question: isn't a Skill just a small subagent? No. A Skill runs
+                <i>inside</i> your current agent, in your current session — it temporarily extends what that
+                agent knows how to do, then the session continues exactly where it left off. A subagent
+                is a different invocation entirely: its own context window, its own tool access, and it
+                reports back rather than folding into your conversation. Use a Skill when you want the
+                agent you're already talking to to do the task, just following a known-good procedure.
+                Use a subagent when you want to isolate the work — a separate context budget, something
+                parallelizable, or something you'd rather not have clutter the main session.</p>
+        </div>
+
+        <div class="flow-diagram reveal">
+            <div class="flow-step">
+                <span class="fn" data-ed>1</span>
+                <span class="ft" style="font-size:22px;" data-ed>Prompt</span>
+                <span class="fd" style="font-size:15.5px;" data-ed>Reuse lives in your memory. Forget it, lose it.</span>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step">
+                <span class="fn" data-ed>2</span>
+                <span class="ft" style="font-size:22px;" data-ed>Script</span>
+                <span class="fd" style="font-size:15.5px;" data-ed>Reuse lives in fixed code. Reliable, until the task varies at all.</span>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step">
+                <span class="fn" data-ed>3</span>
+                <span class="ft" style="font-size:22px;" data-ed>Skill</span>
+                <span class="fd" style="font-size:15.5px;" data-ed>Reuse lives in a discoverable procedure Claude finds and follows itself.</span>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step">
+                <span class="fn" data-ed>4</span>
+                <span class="ft" style="font-size:22px;" data-ed>Subagent</span>
+                <span class="fd" style="font-size:15.5px;" data-ed>Reuse lives in a delegated role, not a shared recipe — a different axis, not a step further along this one.</span>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>For this week, the boundary that matters is prompt vs. script vs. Skill. Subagents get their own week — for now, just don't mistake "runs on its own" for "more capable."</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 07 — ANATOMY OVERVIEW: THE FRONTMATTER IS THE DISCOVERY SURFACE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Anatomy of a Skill · Part 2</span>
+        <span data-ed>07 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>two fields decide whether a skill fires at all</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:42px;" data-ed>The frontmatter — <code>name</code> and <code>description</code> — is the entire discovery surface. Everything else in the file is invisible until that matches.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed>SKILL.md opens with YAML frontmatter — two fields, <code>name</code> and <code>description</code>, and nothing
+                else in that block. That's not an accident of format: it's the only part of the file
+                Claude reads before deciding whether the Skill is even relevant. Every installed Skill's
+                frontmatter gets scanned against your current task, every time, regardless of whether it
+                ends up used. The steps underneath aren't loaded until a match happens. Write a vague
+                description and a genuinely useful Skill never fires; write a precise one and it fires
+                exactly when it should, and stays silent otherwise.</p>
+        </div>
+
+        <div class="case-callout reveal">
+            <span class="cl" data-ed>illustrative, not a real file</span>
+            <pre data-ed style="font-family:var(--font-mono);font-size:14.5px;line-height:1.55;color:var(--ink-75);white-space:pre-wrap;">---
+name: ledger-refund-code
+description: Add a new refund reason code to Ledger — idempotency check,
+  audit-log entry, billing-events publish, refund-state enum extension, and a
+  sandbox integration test. Use when adding or changing refund reason codes.
+---</pre>
+        </div>
+
+        <ul class="bs-list small reveal">
+            <li data-ed><b><code>name</code></b> — a short slug. Identifies the Skill in logs and lets you refer to it directly — <code>description</code> does the matching heavy-lifting; <code>name</code> is a short identifier that mirrors it.</li>
+            <li data-ed><b><code>description</code></b> — the only field Claude uses to judge relevance. It has to say both what the Skill does and when to use it — a title alone won't trigger a match on the right task.</li>
+            <li data-ed><b>Everything below the frontmatter</b> — steps, bundled scripts, reference docs — is dead weight to the matching step. None of it gets read until <code>description</code> has already done its job.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>A Skill with a weak description is functionally no Skill at all — it's a folder Claude will never open.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 08 — PROGRESSIVE DISCLOSURE PRINCIPLE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Anatomy of a Skill · Part 2</span>
+        <span data-ed>08 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>why skill.md stays thin</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>SKILL.md is an index, not a reference manual. Detail lives one hop away, loaded only when the procedure actually needs it.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Once a Skill matches, its SKILL.md loads into context — but that doesn't mean everything
+                it might ever need should live inline. A Skill that packages a genuinely detailed
+                procedure — a full design system, a set of code templates, a style guide — could bloat
+                SKILL.md into a wall of text Claude has to hold on every single invocation, most of it
+                irrelevant to today's task. The fix is the same discipline as splitting a bloated module
+                into an index plus focused files: SKILL.md stays a short set of steps and pointers; the
+                heavy reference material lives in separate files that only get read when a specific step
+                actually calls for them.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Frontmatter loads for every installed Skill, every time a task comes in — it has to stay cheap.</li>
+            <li data-ed>SKILL.md's body loads once a match happens — still kept light: steps and pointers, not the reference material itself.</li>
+            <li data-ed>Bundled resource files load only when the step in progress actually needs that detail — not all at once, and not on every invocation.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Same instinct as a lazy import: load what the current line needs, not the whole library, just in case.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 09 — WORKED EXAMPLE INTRO (THE META MOMENT)
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Anatomy of a Skill · Part 2</span>
+        <span data-ed>09 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>a real skill, not a toy example</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:50px;" data-ed>The Skill behind these slides — literally.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Every deck you've seen in this course — Week 0 through this one — was generated with a
+                real, installed Skill called <code>frontend-slides</code>: it builds animation-rich HTML
+                presentations from a written outline. It isn't a specimen built for this lecture. It's
+                the actual folder that turned an outline into the deck on your screen right now. The next
+                two slides quote it directly — its frontmatter, one of its own stated principles, and
+                four of its resource files it defers to instead of inlining everything itself.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Its <code>name</code> and <code>description</code> — the exact words that had to match "build me a presentation" for it to fire at all.</li>
+            <li data-ed>Its stated Core Principles — including one it names, in its own words, as progressive disclosure.</li>
+            <li data-ed>Four of its resource files — <code>html-template.md</code>, <code>animation-patterns.md</code>, <code>STYLE_PRESETS.md</code>, <code>viewport-base.css</code> — none loaded until the phase that needs them arrives.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>If you've been slightly delighted by how these decks look, that delight was designed into a Skill file, not typed fresh every week.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 10 — WORKED EXAMPLE: REAL SKILL.MD EXCERPT WALKTHROUGH
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Anatomy of a Skill · Part 2</span>
+        <span data-ed>10 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-sm);">
+        <div>
+            <div class="kicker reveal" data-ed>the file, in its own words</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:38px;" data-ed>Read the frontmatter first — then watch it name progressive disclosure as one of its own rules.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:16px;" data-ed>Two excerpts below, copied verbatim from the actual <code>SKILL.md</code>.</p>
+        </div>
+
+        <div class="case-callout reveal">
+            <span class="cl" data-ed>quote 1 · SKILL.md lines 1-4, verbatim</span>
+            <pre data-ed style="font-family:var(--font-mono);font-size:13.5px;line-height:1.5;color:var(--ink-75);white-space:pre-wrap;">---
+name: frontend-slides
+description: Create stunning, animation-rich HTML presentations from scratch or by converting PowerPoint files. Use when the user wants to build a presentation, convert a PPT/PPTX to web, or create slides for a talk/pitch. Helps non-designers discover their aesthetic through visual exploration rather than abstract choices.
+---</pre>
+            <p data-ed style="font-size:15px;line-height:1.5;margin-top:10px;">This is the whole discovery surface from two slides ago. Notice it states both the <i>what</i> — "stunning, animation-rich HTML presentations... or by converting PowerPoint files" — and the <i>when</i> — "Use when the user wants to build a presentation, convert a PPT/PPTX to web, or create slides for a talk/pitch." Exactly the two things a description needs, nothing else.</p>
+        </div>
+
+        <div class="case-callout reveal">
+            <span class="cl" data-ed>quote 2 · Core Principle 4 of 5 · SKILL.md line 15, verbatim</span>
+            <pre data-ed style="font-family:var(--font-mono);font-size:13.5px;line-height:1.5;color:var(--ink-75);white-space:pre-wrap;">4. **Progressive Disclosure** — Read lightweight style indexes first. For bold
+templates, use small preview cards for style previews and load the full
+`design.md` only after the user picks that template.</pre>
+            <p data-ed style="font-size:15px;line-height:1.5;margin-top:10px;">This Skill states the exact principle from slide 8, in its own words, as one of five numbered Core Principles — and gives a concrete instance of it: don't load a heavy <code>design.md</code> file until the user has actually picked that template.</p>
+        </div>
+
+        <p class="lead reveal" style="font-size:22px;" data-ed>Notice what's missing from both excerpts: no actual HTML, no animation code, no color palettes. Those live elsewhere — next slide.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 11 — WORKED EXAMPLE: RESOURCE FILES IN PRACTICE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Anatomy of a Skill · Part 2</span>
+        <span data-ed>11 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-sm);">
+        <div>
+            <div class="kicker reveal" data-ed>the detail SKILL.md doesn't carry</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:36px;" data-ed>Four of ten files hold everything SKILL.md defers — and the real table names exactly when each one gets read.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:15.5px;" data-ed><code>frontend-slides</code> bundles resource files alongside its <code>SKILL.md</code>. None of their
+                content lives inline in the main file — SKILL.md just names each one, says what it's
+                for, and says which phase of the procedure actually needs it. This is progressive
+                disclosure exercised, not just stated: the table below is copied verbatim from the
+                Skill's own "Supporting Files" section (<code>SKILL.md</code> lines 369-377, four of its ten rows —
+                the other six cover a bold-template sub-pack and utility scripts, out of scope here).</p>
+        </div>
+
+        <div class="anatomy-table" style="flex:none;">
+            <div class="anatomy-row reveal" style="transition-delay:.04s;padding:11px 0;">
+                <div class="anatomy-name"><span class="nm" style="font-size:20px;" data-ed>STYLE_PRESETS.md</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Purpose</span><p style="font-size:15px;" data-ed>12 curated visual presets with colors, fonts, and signature elements</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>When to Read</span><p style="font-size:15px;" data-ed>Phase 2 (style selection)</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.08s;padding:11px 0;">
+                <div class="anatomy-name"><span class="nm" style="font-size:20px;" data-ed>viewport-base.css</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Purpose</span><p style="font-size:15px;" data-ed>Mandatory fixed-stage CSS — copy into every presentation</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>When to Read</span><p style="font-size:15px;" data-ed>Phase 3 (generation)</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.12s;padding:11px 0;">
+                <div class="anatomy-name"><span class="nm" style="font-size:20px;" data-ed>html-template.md</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Purpose</span><p style="font-size:15px;" data-ed>HTML structure, JS features, code quality standards</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>When to Read</span><p style="font-size:15px;" data-ed>Phase 3 (generation)</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.16s;padding:11px 0;">
+                <div class="anatomy-name"><span class="nm" style="font-size:20px;" data-ed>animation-patterns.md</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Purpose</span><p style="font-size:15px;" data-ed>CSS/JS animation snippets and effect-to-feeling guide</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>When to Read</span><p style="font-size:15px;" data-ed>Phase 3 (generation)</p></div>
+            </div>
+        </div>
+
+        <ul class="bs-list small reveal">
+            <li data-ed><b>STYLE_PRESETS.md</b> (346 lines) — twelve named presets (Bold Signal, Electric Studio, and ten more), each with a vibe description, layout notes, specific font choices, a CSS color-variable block, and signature visual elements. None of this is summarized in SKILL.md — only referenced.</li>
+            <li data-ed><b>viewport-base.css</b> (133 lines) — the actual mandatory CSS, meant to be pasted in whole: the fixed 1920×1080 stage, slide-visibility rules, the scaling-transform contract. SKILL.md doesn't describe this CSS, it just says to include its full contents.</li>
+            <li data-ed><b>html-template.md</b> (350 lines) — a full base HTML document: <code>&lt;head&gt;</code> boilerplate, the CSS custom-property scaffold, section-comment conventions, the JS structure a real deck needs.</li>
+            <li data-ed><b>animation-patterns.md</b> (110 lines) — an effect-to-feeling table (dramatic/cinematic, techy/futuristic, calm/minimal, and others) plus ready CSS snippets for entrance animations and background effects.</li>
+        </ul>
+
+        <p class="lead reveal" style="font-size:19px;" data-ed>Add those four files up — 939 lines combined — against SKILL.md's 380. Inlined, every
+            single invocation would load more than double the text it does today, most of it
+            irrelevant to whatever phase you're actually in. Split apart, each file loads exactly
+            once, exactly when its phase arrives — the same principle from three slides back, now
+            with real file sizes attached.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 12 — STEP 1: SPOT THE PATTERN
+     Speaker note — Ledger checks, one per bullet (spoken live, not read
+     off the slide):
+     1. "It recurs, and not just for you" — three separate engineers hit
+        the refund-code procedure, not one engineer twice.
+     2. "It's a sequence of steps, not a single fact" — five ordered
+        steps, not one lookup.
+     3. "It needs judgment applied to those steps" — "extend the
+        refund-state enum" means something different depending on which
+        values already exist; that's a judgment call, not a substitution.
+     5. "Getting it wrong has a real, noticeable cost" — Engineer B's
+        skipped sandbox test shipped clean and silent, until the sandbox
+        contract changed weeks later.
+     (Bullet 4, "state it in one sentence," has no Ledger check — it
+     points forward to slide 13 instead.)
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Building Your Own · Part 3 · Step 1 of 4</span>
+        <span data-ed>12 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-sm);">
+        <div>
+            <div class="kicker reveal" data-ed>step 1 of 4 · before you write a line of skill.md</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:38px;" data-ed>Not every recurring task is skill-shaped. Run the candidate against this checklist first.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:16.5px;" data-ed>Building a Skill is real work: a description that has to be precise, steps that have to
+                generalize, and — often — resource files to structure. Spend that effort on the wrong
+                candidate and you get one of two failures: a script's job wearing a Skill's overhead, or
+                a task so fuzzy no description will ever fire on it reliably. The refund-reason-code
+                procedure from Part 1 clears every check below. That's not a coincidence — it's exactly
+                why it's the example this course keeps coming back to.</p>
+        </div>
+
+        <ul class="bs-list small reveal">
+            <li data-ed><b>It recurs, and not just for you.</b> If you're the only person who will ever hit this task, a good one-off prompt is cheaper than a Skill.</li>
+            <li data-ed><b>It's a sequence of steps, not a single fact.</b> A fact — "the audit log uses house format X" — belongs in CLAUDE.md, not a Skill. Skills exist for procedures with more than one step.</li>
+            <li data-ed><b>It needs judgment applied to those steps, not identical mechanical execution.</b> If every input produces the exact same output with zero adaptation, write a script — it'll be more reliable on that exact case than a Skill (see the comparison table, slide 5). A Skill earns its place when the steps have to be read and adapted to what's actually in front of you.</li>
+            <li data-ed><b>You can state it in one sentence that names both what it is and when to use it.</b> If you're struggling to summarize the task that crisply, you don't understand the pattern well enough to package it yet — or it's quietly two tasks sharing one name. (Next slide is entirely about this.)</li>
+            <li data-ed><b>Getting it wrong has a real, noticeable cost.</b> If nobody would care whether a step got skipped, it isn't worth packaging.</li>
+        </ul>
+
+        <p class="lead reveal" style="font-size:18px;" data-ed>Five checks, one candidate: Ledger's refund-code procedure clears all five. Clear four or
+            five and it's worth building. Clear one or two and you've usually found a script, a
+            CLAUDE.md fact, or a task that isn't well-understood enough to package yet.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 13 — STEP 2: WRITE THE DESCRIPTION FIRST
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Building Your Own · Part 3 · Step 2 of 4</span>
+        <span data-ed>13 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-sm);">
+        <div>
+            <div class="kicker reveal" data-ed>step 2 of 4 · the only line claude reads before deciding</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:34px;" data-ed>Write the description before you write a single step — it's the only part of the file that decides whether any of the rest ever runs.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:16px;" data-ed>Slide 7 already established that <code>description</code> is the entire discovery surface. Knowing
+                that doesn't make writing one easy — most bad descriptions fail in one of two specific
+                ways, and neither looks broken until you watch it in use. Below: the same
+                <code>ledger-refund-code</code> Skill, described three different ways.</p>
+        </div>
+
+        <div class="anatomy-table cells-3" style="flex:none;">
+            <div class="anatomy-row reveal" style="transition-delay:.04s;padding:13px 0;">
+                <div class="anatomy-cell"><span class="lbl" data-ed>Description</span><p data-ed>"Handles refund codes."</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Result</span><p data-ed><b>Never fires.</b></p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Why</span><p data-ed>Generic verb, no trigger condition, no distinguishing detail. It doesn't describe anything specific enough to match against — so it matches nothing.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.08s;padding:13px 0;">
+                <div class="anatomy-cell"><span class="lbl" data-ed>Description</span><p data-ed>"Updates Ledger's billing system."</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Result</span><p data-ed><b>Misfires.</b></p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Why</span><p data-ed>Scope too wide. It also reads as a match for unrelated billing tasks — a pricing change, a billing-dashboard fix — that need none of the five steps. A Skill that fires on the wrong task is as broken as one that never fires.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.12s;padding:13px 0;">
+                <div class="anatomy-cell">
+                    <span class="lbl" data-ed>Description</span>
+                    <div class="case-callout" style="padding:2px 0 2px 16px;">
+                        <span class="cl" data-ed>callback · slide 7's illustrative frontmatter, verbatim</span>
+                        <p style="font-size:14px;" data-ed>"Add a new refund reason code to Ledger — idempotency check, audit-log entry, billing-events publish, refund-state enum extension, and a sandbox integration test. Use when adding or changing refund reason codes."</p>
+                    </div>
+                </div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Result</span><p data-ed><b>Fires reliably.</b></p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Why</span><p data-ed>States both the <i>what</i> (the five concrete steps) and the <i>when</i> (the exact phrase — "adding or changing refund reason codes" — not "billing" in general). This is slide 7's illustrative frontmatter, verbatim.</p></div>
+            </div>
+        </div>
+
+        <ul class="bs-list small reveal">
+            <li data-ed>Use the words your team actually says when they ask for this, not a paraphrase of your own intent — Claude matches against the request as typed, not against what you meant.</li>
+            <li data-ed>State the "when" explicitly. The single most common way a good Skill never fires is a description that only says what it does and leaves the trigger condition implicit.</li>
+            <li data-ed>Write the boundary as deliberately as the content — a description should exclude neighboring tasks, not just include the target one.</li>
+            <li data-ed>Test it against 2-3 adjacent tasks before you trust it: would this description also plausibly match on something it shouldn't?</li>
+        </ul>
+
+        <p class="lead reveal" style="font-size:18px;" data-ed>A description is a contract with Claude's matching pass, not a comment for a human
+            reader — write it the way you'd write a docstring that decides whether the function
+            underneath it ever runs at all.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 14 — STEP 3: STRUCTURE WITH PROGRESSIVE DISCLOSURE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Building Your Own · Part 3 · Step 3 of 4</span>
+        <span data-ed>14 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>step 3 of 4 · keep the index thin</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:40px;" data-ed>Once the description fires, don't undo the win by making SKILL.md itself a wall of text.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>This is the same discipline from slide 8, now as a build step rather than a principle.
+                <code>frontend-slides</code> is the proof it holds at real scale: SKILL.md stays a 380-line index of
+                steps and named principles; the 939 combined lines of <code>STYLE_PRESETS.md</code>,
+                <code>viewport-base.css</code>, <code>html-template.md</code>, and <code>animation-patterns.md</code> — the Supporting
+                Files table from two slides back — sit outside it, each read only in the phase that
+                needs it. Building your own Skill means making that same call the moment a step in your
+                procedure needs more than a few lines of reference material.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Start by listing your procedure's steps as a short numbered list in SKILL.md. That list is the index — not the place to also carry a schema, a full style guide, or a long enum.</li>
+            <li data-ed>The moment a step needs more than a few lines of reference material, split it into its own file — exactly the move <code>frontend-slides</code> made putting style choices in <code>STYLE_PRESETS.md</code> and HTML boilerplate in <code>html-template.md</code>, instead of inlining either into <code>SKILL.md</code>.</li>
+            <li data-ed>Reference each split-out file from <code>SKILL.md</code> the way <code>frontend-slides</code> does in its own Supporting Files table: name it, state its purpose, state which step reads it.</li>
+            <li data-ed>Not everything belongs in a resource file — if a piece of content is needed on every single invocation regardless of path, inline it. Progressive disclosure only pays off for material that's conditional on which branch of the procedure gets taken.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>SKILL.md is the index; the resource files are the stacks. <code>frontend-slides</code> proves the
+            split holds up at 1,300+ combined lines — the same discipline scales down just as
+            cleanly to a five-step refund-code procedure with one reference file.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 15 — STEP 4: TEST AND ITERATE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Building Your Own · Part 3 · Step 4 of 4</span>
+        <span data-ed>15 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>step 4 of 4 · a skill.md is a folder until it's proven</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>An untested Skill hasn't earned the name yet — it's a folder that might fire.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Writing <code>SKILL.md</code> doesn't mean it works. "Testing a Skill" isn't a unit test — it's
+                running it against real, unscripted requests, phrased the way your team actually talks,
+                and watching what happens at both ends: did it fire when it should have, and did it stay
+                silent when it shouldn't have.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>Run it on the real task, phrased naturally.</b> Ask for the change the way Engineer C would — "just add a refund code" — not the way you phrased the description. If it doesn't fire on natural phrasing, the description doesn't match reality yet.</li>
+            <li data-ed><b>Check whether it fired at all.</b> Silence is a description failure — go back to slide 13's rules: is the "when" explicit? Does it use the words people actually use?</li>
+            <li data-ed><b>Check whether it fired on the wrong task.</b> Try 2-3 adjacent tasks that share vocabulary — a general billing fix, an unrelated audit-log change — and confirm it stays silent on all of them.</li>
+            <li data-ed><b>Watch what it does once loaded, not just whether it loaded.</b> Did it follow the steps in order? Did it reach for resource files at the right phase, or load everything upfront? A vague step is where it improvises wrong.</li>
+            <li data-ed><b>Tighten and re-run — don't rewrite from scratch.</b> Most fixes are narrow: add the missing trigger phrase, split out a stray resource file, sharpen one ambiguous step. Then run the same checks again.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Ship a Skill the way you'd ship any other code that decides when to run itself: prove it
+            fires when it should, stays silent when it shouldn't, and does the right thing —
+            then let your team depend on it.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 16 — DISCOVERY: HOW A TASK ACTUALLY GETS MATCHED TO A SKILL
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Discovery &amp; Invocation · Part 4 · 1 of 4</span>
+        <span data-ed>16 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>one task, every installed skill, one matching pass</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:42px;" data-ed>Discovery isn't a lookup against one Skill. It's a judgment call made across every installed Skill at once.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed>Slide 7 established that every installed Skill's frontmatter gets scanned against your
+                current task. What that actually looks like in practice: there's no priority order, no
+                "first match wins," no alphabetical tiebreak, no most-recently-installed bonus. Claude
+                reads your task once and weighs it against every candidate description at the same time —
+                the same kind of relevance judgment it applies to interpreting the request itself, not a
+                fixed router with hard-coded rules. When exactly one description clearly fits, that one
+                fires and the rest stay silent. The harder case is when more than one plausibly could.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>It's a field, not a queue.</b> All installed Skills are candidates simultaneously — the question Claude is actually answering is "which of these fits best," not "does this one fit, yes or no."</li>
+            <li data-ed><b>Specificity is the tiebreaker — the same axis from slide 13.</b> If two Skills' descriptions both plausibly cover a "billing" task, the one that names the exact trigger phrase — "refund reason codes," not "billing system" — wins the near-tie, not by rule, but by being the better-worded match.</li>
+            <li data-ed><b>A vague description doesn't fail safely — it loses fights it didn't know it was in.</b> It's not just "might never fire" (slide 13's first failure mode); against a sibling Skill with a sharper description on an overlapping task, it can lose the match entirely, silently, with no error to notice.</li>
+            <li data-ed><b>A genuine tie is a design smell, not a Claude bug.</b> If two Skills' descriptions are equally specific to the same task, that's a sign their scopes actually overlap and should be split or merged — not something to work around with cleverer phrasing.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Writing a precise description was never just about making your one Skill fire. It's about
+            making it win — against every other candidate sitting in the same room.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 17 — INVOCATION: WHAT FIRING ACTUALLY COSTS
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Discovery &amp; Invocation · Part 4 · 2 of 4</span>
+        <span data-ed>17 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>firing a skill isn't free — but staying installed is</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:42px;" data-ed>A Skill's cost is paid once, at match time. CLAUDE.md's cost is paid every session, whether today's task needs it or not.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Slide 8 already established that once a Skill matches, its SKILL.md body loads into
+                context — that's real token cost, on top of the frontmatter scan every installed Skill
+                already pays every time (slide 7). Set that against CLAUDE.md, which W2 grounded Ledger
+                in: CLAUDE.md loads in full, every session, unconditionally — whether today's task touches
+                billing, refunds, or nothing about Ledger at all. That's the whole distinction. CLAUDE.md
+                is always-on context; a Skill's body is conditional context, gated behind a match that
+                may never come.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>CLAUDE.md: always-on.</b> Loads at session start, every session, in full, regardless of relevance to what you're about to ask.</li>
+            <li data-ed><b>Skill frontmatter: cheap and constant.</b> <code>name</code> + <code>description</code> for every installed Skill gets scanned every time — small, fixed, and paid whether or not it matches.</li>
+            <li data-ed><b>Skill body: conditional and deferred.</b> The steps underneath only load if the description matched this task. Zero cost on every task that isn't this one — no matter how many Skills are sitting installed.</li>
+            <li data-ed><b>The practical payoff:</b> you can install a Skill for every team's recurring runbook — refunds, deploys, incident response, all of it — without inflating the context budget of a session that touches none of them. Installed isn't the same as loaded.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>CLAUDE.md is the tax you pay for grounding, every session, no exceptions. A Skill is
+            closer to a tool on a shelf — it only costs you anything the moment you actually reach for it.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 18 — ANATOMY TIE-BACK: FOUR GROUNDING LAYERS, FOUR DIFFERENT JOBS
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Discovery &amp; Invocation · Part 4 · 3 of 4</span>
+        <span data-ed>18 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-sm);">
+        <div>
+            <div class="kicker reveal" data-ed>four layers, one project, four different questions</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:34px;" data-ed>SKILL.md, CLAUDE.md, memory, and RAG aren't competing options — they're four different answers to four different questions.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:16px;" data-ed>W2 gave Ledger three grounding layers. This week added a fourth. Laid side by side, each
+                one answers a question the others don't.</p>
+        </div>
+
+        <div class="anatomy-table" style="flex:none;">
+            <div class="anatomy-row reveal" style="transition-delay:.04s;padding:12px 0;">
+                <div class="anatomy-name"><span class="nm" style="font-size:21px;" data-ed>CLAUDE.md</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What It Holds</span><p style="font-size:14.5px;" data-ed>Durable, slow-changing project facts — conventions, architecture, pointers to where the real answer lives (e.g., the <code>billing-events</code> topic name, the house audit-log format).</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>When It Loads &amp; How It's Found</span><p style="font-size:14.5px;" data-ed>Loads in full, every session, unconditionally. Not discovered — just always there.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.08s;padding:12px 0;">
+                <div class="anatomy-name"><span class="nm" style="font-size:21px;" data-ed>Memory</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What It Holds</span><p style="font-size:14.5px;" data-ed>A record of specific past decisions and feedback, tied to when and why they happened — organized into the taxonomy from W2 (User / Feedback / Project / Reference).</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>When It Loads &amp; How It's Found</span><p style="font-size:14.5px;" data-ed>Surfaced selectively, by relevance to the current task — not dumped in full like CLAUDE.md, and not scanned like a Skill's frontmatter; the relevant entries get pulled in when the topic recurs.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.12s;padding:12px 0;">
+                <div class="anatomy-name"><span class="nm" style="font-size:21px;" data-ed>RAG</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What It Holds</span><p style="font-size:14.5px;" data-ed>Whatever's too large or too volatile to keep in CLAUDE.md at all — full wiki pages, past PRs, long spec docs — retrieved from the underlying corpus at query time.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>When It Loads &amp; How It's Found</span><p style="font-size:14.5px;" data-ed>Nothing loads by default. A query at the moment of need retrieves the specific matching chunk — the rest of the corpus stays untouched.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.16s;padding:12px 0;">
+                <div class="anatomy-name"><span class="nm" style="font-size:21px;" data-ed>Skill (SKILL.md)</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>What It Holds</span><p style="font-size:14.5px;" data-ed>A procedure — a sequence of steps requiring judgment to apply, not a fact and not a corpus (slides 4, 12).</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>When It Loads &amp; How It's Found</span><p style="font-size:14.5px;" data-ed>Frontmatter scanned every session, cheaply, against every task (slide 7). Full body loads only on a match (slides 8, 17) — otherwise it costs nothing at all.</p></div>
+            </div>
+        </div>
+
+        <p class="body reveal" style="font-size:15.5px;" data-ed>These compose on a single task rather than substitute for each other. Take the refund-code
+            change from Part 1 again: CLAUDE.md supplies the fact that <code>billing-events</code> is the topic
+            to publish to; memory supplies the Project-category record of <i>why</i> the sandbox
+            integration test became mandatory (a past incident, not a rule anyone would think to
+            restate); RAG pulls the exact audit-log field spec from a wiki page too long to keep
+            inline in CLAUDE.md; and the <code>ledger-refund-code</code> Skill supplies the procedure itself —
+            the ordered steps that turn all three of those facts into a finished change. No single
+            layer does this task alone.</p>
+
+        <p class="lead reveal" style="font-size:18px;" data-ed>Same question as W2's "what's true about this codebase" versus this week's "what do you
+            do to it" — just now with four layers instead of one, each loaded on its own terms, each
+            discovered its own way.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 19 — SKILL-SHAPED, BEYOND REFUNDS AND SLIDE DECKS
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Discovery &amp; Invocation · Part 4 · 4 of 4</span>
+        <span data-ed>19 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>the pattern generalizes past this course's two examples</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:38px;" data-ed>Ledger's refund codes and <code>frontend-slides</code> are two data points. Here are four more, from four different corners of the job.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:17px;" data-ed>Run slide 12's checklist against any of these and they clear it the same way the
+                refund-code procedure did: they recur across people, they're a sequence requiring
+                judgment rather than a single fact or a fixed script, they compress into one honest
+                sentence, and skipping a step has a real cost that shows up later, not immediately.</p>
+        </div>
+
+        <ul class="bs-list small reveal">
+            <li data-ed><b>A deploy runbook — canary rollout, health-check thresholds, rollback trigger.</b> Recurs every release, across whoever's on point that week; "roll back if error rate exceeds baseline by X for Y minutes" is a judgment call against live data, not a mechanical check — exactly why it's not just a script.</li>
+            <li data-ed><b>A code-review checklist tailored to your team's actual failure modes — missing feature-flag guards, unhandled migration rollback, absent test for the exact edge case that bit you last quarter.</b> Generic review advice is a fact ("we require tests"); <i>your</i> team's specific, hard-won checklist is a procedure worth packaging precisely because it was earned the expensive way.</li>
+            <li data-ed><b>A commit-message / PR-description convention — ticket-ID linking, breaking-change flagging, the specific sections a reviewer expects to find.</b> Easy to state as one sentence, easy to skip under deadline pressure, and the cost — an unreviewable PR, an unlinked ticket — shows up in someone else's sprint, not yours.</li>
+            <li data-ed><b>An incident-response procedure — who gets paged, what gets captured in the timeline while memory is fresh, what a blameless postmortem template requires before it's considered done.</b> The highest-stakes case on this list: skipped under pressure precisely when it matters most, which is exactly the argument for packaging it as something Claude follows rather than something an on-call engineer has to remember cold at 3 a.m.</li>
+        </ul>
+
+        <p class="lead reveal" style="font-size:19px;" data-ed>None of these are exotic. They're the runbooks every engineering org already has, half-
+            written, in a wiki nobody opens mid-incident — which was exactly Ledger's refund-code
+            problem, four teams over.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 20 — THIS WEEK'S LAB, A PREVIEW
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Apply · Map Your Runbooks · 1 of 2</span>
+        <span data-ed>20 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>this week's lab · a preview, not a build spec</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:42px;" data-ed>This week: a real chatbot — guardrails, a judge, memory, a router, a UI. One recurring piece of it becomes a Skill.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>This week's lab is a working chatbot, built end-to-end: input/output guardrails, an
+                LLM-as-judge step for quality control, persistent memory, a router that switches between
+                models depending on the task, a Gradio front end, and <code>uv</code> managing the environment
+                underneath all of it. It's not a toy — it's a system with enough recurring, judgment-heavy
+                procedure inside it that at least one piece of it is worth packaging the way this entire
+                lecture has been about: as a Skill, not something re-explained fresh every time you touch
+                it. Full build details land with the lab guide, not here — this is a preview, not a spec.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>Guardrails</b> — checks the chatbot runs before a response is considered safe to return.</li>
+            <li data-ed><b>LLM-as-judge</b> — a model call whose job is evaluating another model's output, not generating the user-facing answer.</li>
+            <li data-ed><b>Memory</b> — persisted state the chatbot draws on across turns and sessions, not just within one conversation.</li>
+            <li data-ed><b>Router</b> — logic that decides which model handles a given request, instead of sending everything to one model by default.</li>
+            <li data-ed><b>Gradio</b> — the UI layer end users actually interact with.</li>
+            <li data-ed><b><code>uv</code></b> — how the project's Python environment gets managed and reproduced.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Start thinking now about which piece of this — a guardrail check, the judge's rubric, the
+            router's decision logic — is a procedure you'll want Claude to follow the same way twice.
+            That's the one you'll package as a Skill.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 21 — APPLY: MAP YOUR OWN TEAM'S RUNBOOKS
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Apply · Map Your Runbooks · 2 of 2</span>
+        <span data-ed>21 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>apply · homework before next session</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>Find one or two of your own team's runbooks that are skill-shaped — and prove it, don't assume it.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Slide 19 gave four examples from other people's jobs. This one is about yours. Somewhere
+                in your team's process there's a procedure that gets re-explained instead of packaged —
+                pull it out of the wiki page nobody opens mid-sprint and run it through slide 12's
+                checklist for real, not from memory.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>List 3-5 candidates first, not one.</b> Deploys, on-call handoffs, code review, release notes, incident postmortems, onboarding a service to CI — whatever your team actually repeats.</li>
+            <li data-ed><b>Run each one through slide 12's five checks:</b> does it recur across people, is it a sequence rather than a single fact, does it need judgment rather than identical mechanical execution, can you state it in one sentence, and does skipping it cost something real.</li>
+            <li data-ed><b>Pick the 1-2 that clear four or five checks.</b> The rest aren't wasted — they're now correctly identified as scripts, CLAUDE.md facts, or tasks nobody's understood well enough to package yet.</li>
+            <li data-ed><b>Write the one-sentence description before anything else</b> — the same discipline as slide 13. If you can't state what it is and when to use it that cleanly, you've found the actual gap, not a checklist failure.</li>
+            <li data-ed>Bring your 1-2 candidates to next session, ready to talk through where the description almost misfires.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>The checklist was never the point of slide 12 — finding out which of your team's tribal knowledge is actually worth packaging is. This is where you find out.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 22 — REFLECTION PROMPTS
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Reflection</span>
+        <span data-ed>22 — 24</span>
+    </div>
+
+    <div class="slide-body" style="flex-direction:row;gap:0;align-items:stretch;">
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-right:72px;border-right:1px solid var(--ink-20);">
+            <div class="kicker reveal" data-ed>reflection · bring this to cohort discussion</div>
+            <h2 class="h2 reveal mt-md" style="font-size:48px;" data-ed>Three questions to sit with before next session.</h2>
+            <p class="body reveal mt-md" data-ed>Not a quiz — there's no graded answer to any of these. They're meant to seed the
+                discussion at the start of next session, so come with a specific answer, not a general one.</p>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-left:72px;">
+            <span class="kicker reveal" data-ed>three prompts to answer out loud</span>
+            <ul class="bs-list reveal mt-md">
+                <li data-ed>Think about the last time a recurring procedure on your team got done wrong, or skipped, under time pressure. What would it have taken for that step to happen the same way regardless of who was doing it, or how rushed they were?</li>
+                <li data-ed>If the one person who knows your team's messiest, most important runbook left tomorrow, what would be lost — and why hasn't it been packaged already?</li>
+                <li data-ed>Where do you personally draw the line between "worth writing a Skill for" and "fine as a wiki page and a Slack reminder"? Name one specific procedure that sits right on that line for you, and what would push it one way or the other.</li>
+            </ul>
+            <p class="lead reveal mt-lg" data-ed>Bring one real answer, tied to one real procedure at your job — not a general opinion about packaging knowledge.</p>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 23 — LOOKING AHEAD TO WEEK 4 (MCP)
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Looking Ahead</span>
+        <span data-ed>23 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>looking ahead · week 4</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:48px;" data-ed>Skills package what Claude already knows how to do. Next week: giving it access to what it doesn't.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>A Skill packages a procedure — steps Claude follows using its own reasoning and whatever's
+                already in context. But plenty of real work depends on live external systems — your ticket
+                tracker, your deploy pipeline, your internal APIs — that Claude has no built-in way to
+                reach at all. Week 4 covers the Model Context Protocol (MCP): how Claude connects directly
+                to those external tools and data sources, instead of you copy-pasting their output into a
+                prompt by hand.</p>
+        </div>
+        <p class="lead reveal" data-ed>This week gave Claude a memory of how to do things. Next week gives it hands that reach further than your context window ever could.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 24 — CLOSING / SUMMARY
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Close</span>
+        <span data-ed>24 — 24</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <span class="kicker reveal" data-ed>closing · the week in one idea</span>
+            <h1 class="display reveal-wipe mt-md" style="font-size:120px;text-transform:none;" data-ed>Packaging, not prompting.</h1>
+        </div>
+
+        <p class="body reveal maxw" style="font-size:19px;" data-ed>A grounded agent still isn't a finished one. CLAUDE.md, memory, and RAG — Week 2 — tell
+            Claude what's true about your project. Skills tell it what to do about it: a procedure,
+            written once as a <code>SKILL.md</code>, discovered by its description, and followed with judgment
+            rather than re-explained from scratch every time it recurs. Build one badly and it either
+            never fires or fires on the wrong task. Build one well and it's the same move as pulling a
+            duplicated block into a well-named function — except the caller deciding when to invoke it
+            is Claude, using judgment rather than a fixed condition, reading your description the way
+            you'd read a docstring and adapting the steps each time rather than replaying them identically.</p>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>Not every recurring task is skill-shaped.</b> It has to recur across people, be a sequence needing judgment, compress into one honest sentence, and carry a real cost if skipped.</li>
+            <li data-ed><b>The description is the entire discovery surface.</b> Everything else in the file is invisible until that one field matches the task in front of Claude.</li>
+            <li data-ed><b>Progressive disclosure keeps the index thin.</b> SKILL.md stays a short set of steps and pointers; the heavy material lives one hop away, loaded only when a step actually calls for it.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Grounding solved what Claude knows. This week solved what it does. Next week: what it can reach.</p>
+    </div>
+</section>
+
+</main>
+</div>
+
+<!-- Presentation chrome (outside the scaled stage) -->
+<div class="deck-counter"><span class="cur" id="curNum">01</span> / <span id="totNum">24</span></div>
+<nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+<!-- Inline editing affordance -->
+<div class="edit-hotzone" aria-hidden="true"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">✎</button>
+<div class="edit-hint">EDIT MODE · click any text · Ctrl+S saves · ⤓ exports</div>
+
+<script>
+/* ===========================================================
+   SLIDE CONTROLLER
+   =========================================================== */
+class SlidePresentation{
+    constructor(){
+        this.stage=document.getElementById('deckStage');
+        this.slides=[...document.querySelectorAll('.slide')];
+        this.current=0;
+        this.buildDots();
+        this.setupStageScale();
+        this.setupNav();
+        this.show(0);
+    }
+    setupStageScale(){
+        const scale=()=>{
+            const f=Math.min(window.innerWidth/1920,window.innerHeight/1080);
+            const x=(window.innerWidth-1920*f)/2;
+            const y=(window.innerHeight-1080*f)/2;
+            this.stage.style.transform=`translate(${x}px,${y}px) scale(${f})`;
+        };
+        scale();
+        window.addEventListener('resize',scale);
+    }
+    buildDots(){
+        const wrap=document.getElementById('navDots');
+        this.slides.forEach((_,i)=>{
+            const b=document.createElement('button');
+            b.setAttribute('aria-label','Go to slide '+(i+1));
+            b.addEventListener('click',()=>this.show(i));
+            wrap.appendChild(b);
+        });
+        this.dots=[...wrap.children];
+        document.getElementById('totNum').textContent=String(this.slides.length).padStart(2,'0');
+    }
+    setupNav(){
+        document.addEventListener('keydown',e=>{
+            if(e.target.getAttribute&&e.target.getAttribute('contenteditable')==='true')return;
+            if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();this.next();}
+            else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.prev();}
+            else if(e.key==='Home'){this.show(0);}
+            else if(e.key==='End'){this.show(this.slides.length-1);}
+        });
+        let wheelLock=false;
+        window.addEventListener('wheel',e=>{
+            if(document.body.classList.contains('editing'))return;
+            if(wheelLock)return;
+            if(Math.abs(e.deltaY)<24)return;
+            wheelLock=true;setTimeout(()=>wheelLock=false,700);
+            e.deltaY>0?this.next():this.prev();
+        },{passive:true});
+        let sx=0,sy=0;
+        window.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+        window.addEventListener('touchend',e=>{
+            const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+            if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){dx<0?this.next():this.prev();}
+        },{passive:true});
+    }
+    show(i){
+        this.current=Math.max(0,Math.min(i,this.slides.length-1));
+        this.slides.forEach((s,n)=>{
+            s.classList.toggle('active',n===this.current);
+            s.classList.toggle('visible',n===this.current);
+        });
+        this.dots.forEach((d,n)=>d.classList.toggle('on',n===this.current));
+        document.getElementById('curNum').textContent=String(this.current+1).padStart(2,'0');
+    }
+    next(){this.show(this.current+1);}
+    prev(){this.show(this.current-1);}
+}
+
+/* ===========================================================
+   INLINE EDITOR
+   =========================================================== */
+class Editor{
+    constructor(){
+        this.isActive=false;
+        this.els=[...document.querySelectorAll('[data-ed]')];
+        this.restore();
+        this.wire();
+    }
+    key(){return 'broadside-deck-week3::'+location.pathname;}
+    restore(){
+        try{
+            const saved=JSON.parse(localStorage.getItem(this.key())||'null');
+            if(saved&&Array.isArray(saved)&&saved.length===this.els.length){
+                this.els.forEach((el,i)=>{if(saved[i]!=null)el.innerHTML=saved[i];});
+            }
+        }catch(_){}
+    }
+    save(){
+        try{localStorage.setItem(this.key(),JSON.stringify(this.els.map(el=>el.innerHTML)));}catch(_){}
+    }
+    toggleEditMode(){
+        this.isActive=!this.isActive;
+        document.body.classList.toggle('editing',this.isActive);
+        document.getElementById('editToggle').classList.toggle('active',this.isActive);
+        this.els.forEach(el=>{
+            el.setAttribute('contenteditable',this.isActive?'true':'false');
+            if(this.isActive){el.addEventListener('input',this._oninput);}
+        });
+    }
+    _oninput=()=>this.save();
+    export(){
+        const clone=document.documentElement.cloneNode(true);
+        clone.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+        clone.querySelectorAll('.edit-hotzone,.edit-toggle,.edit-hint').forEach(n=>n.remove());
+        const html='<!DOCTYPE html>\n'+clone.outerHTML;
+        const blob=new Blob([html],{type:'text/html'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='week3-skills-broadside.html';
+        a.click();
+    }
+    wire(){
+        const toggle=document.getElementById('editToggle');
+        const hotzone=document.querySelector('.edit-hotzone');
+        let hideTimeout=null;
+        toggle.addEventListener('click',()=>this.toggleEditMode());
+        hotzone.addEventListener('mouseenter',()=>{clearTimeout(hideTimeout);toggle.classList.add('show');});
+        hotzone.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        toggle.addEventListener('mouseenter',()=>clearTimeout(hideTimeout));
+        toggle.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        hotzone.addEventListener('click',()=>this.toggleEditMode());
+        document.addEventListener('keydown',e=>{
+            if((e.key==='e'||e.key==='E')&&e.target.getAttribute&&e.target.getAttribute('contenteditable')!=='true'){this.toggleEditMode();}
+            if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();this.save();this.flash('saved');}
+            if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='e'&&this.isActive){e.preventDefault();this.export();}
+        });
+    }
+    flash(msg){
+        const hint=document.querySelector('.edit-hint');
+        if(!hint)return;const prev=hint.textContent;hint.textContent=msg.toUpperCase();
+        setTimeout(()=>hint.textContent=prev,1000);
+    }
+}
+
+const deck=new SlidePresentation();
+const editor=new Editor();
+</script>
+</body>
+</html>
