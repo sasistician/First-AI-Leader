@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第3周实验深度解析 — EVBot | AI优先工程师</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700;800;900&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================
+   THEME TOKENS — CORAL PALETTE (matches week0/week1/week3 broadside)
+   =========================================================== */
+:root{
+    --ink:#1A0D0A;
+    --ink-alt:#221210;
+    --orange:#D84D3C;
+    --cream:#FBF5F0;
+    --cream-muted:#9C8078;
+    --cream-hint:#604840;
+    --border-dark:#2C1510;
+    --ink-75:rgba(26,13,10,.75);
+    --ink-55:rgba(26,13,10,.55);
+    --ink-45:rgba(26,13,10,.45);
+    --ink-20:rgba(26,13,10,.20);
+
+    --font-display:'Barlow',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+
+    --display:184px;
+    --h1:140px;
+    --h2:86px;
+    --h3:50px;
+    --stat:104px;
+    --lead:31px;
+    --body:23px;
+    --caption:17px;
+    --label:14px;
+
+    --pad-x:106px;
+    --pad-y:62px;
+    --gap-lg:40px;
+    --gap-md:24px;
+    --gap-sm:12px;
+
+    --ease:cubic-bezier(0.16,1,0.3,1);
+    --ease-slide:cubic-bezier(0.77,0,0.175,1);
+    --stage-bg:#000;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ===========================================================
+   FIXED 16:9 STAGE (viewport-base.css contents)
+   =========================================================== */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg,#fff);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff);}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+img,video,canvas,svg{max-width:100%;max-height:100%;}
+.deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000;}
+@media print{
+    html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
+    .deck-viewport{position:static;overflow:visible;background:#fff;}
+    .deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none;}
+    .slide{position:relative;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
+    .slide:last-child{break-after:auto;page-break-after:auto;}
+    .deck-controls{display:none!important;}
+}
+@media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.2s!important;}
+}
+
+/* ===========================================================
+   SLIDE FRAME
+   =========================================================== */
+.slide{
+    display:flex;flex-direction:column;
+    padding:var(--pad-y) var(--pad-x);
+    background:#FDEAE4;color:var(--ink);
+    font-family:var(--font-display);
+}
+.slide.orange{background:#FDEAE4;color:var(--ink);}
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;}
+
+/* ===========================================================
+   CHROME
+   =========================================================== */
+.chrome{display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);}
+.chrome.top{border-bottom:1px solid var(--ink-20);padding-bottom:var(--gap-sm);}
+.chrome.bot{border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);margin-top:var(--gap-md);}
+
+/* ===========================================================
+   TYPE
+   =========================================================== */
+.kicker{font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.display{font-weight:900;font-size:var(--display);line-height:.88;letter-spacing:-.04em;text-transform:lowercase;}
+.h2{font-weight:800;font-size:var(--h2);line-height:1.02;letter-spacing:-.03em;}
+.h3{font-weight:700;font-size:var(--h3);line-height:1.08;letter-spacing:-.02em;}
+.lead{font-weight:400;font-size:var(--lead);line-height:1.45;color:var(--ink-75);}
+.body{font-size:var(--body);line-height:1.55;color:var(--ink-75);}
+
+.rule{width:36px;height:2px;background:var(--orange);border:0;}
+
+.broadside-num{font-family:var(--font-mono);font-size:22px;font-weight:500;
+    letter-spacing:.1em;color:var(--ink-45);}
+
+.tag{display:inline-block;font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);
+    border:1px solid var(--orange);padding:.4em .8em;}
+
+/* ===========================================================
+   BROADSIDE BULLET LIST
+   =========================================================== */
+.bs-list{list-style:none;}
+.bs-list li{position:relative;padding-left:1.7em;font-size:var(--lead);line-height:1.32;
+    color:var(--ink);margin-bottom:var(--gap-md);}
+.bs-list li:last-child{margin-bottom:0;}
+.bs-list li::before{content:"/";position:absolute;left:0;top:0;color:var(--orange);
+    font-family:var(--font-mono);font-weight:700;}
+.bs-list.small li{font-size:20px;line-height:1.4;}
+
+/* ===========================================================
+   ANATOMY TABLE (used for the pipeline / component-map slides)
+   =========================================================== */
+.anatomy-table{display:flex;flex-direction:column;flex:1;justify-content:center;min-height:0;}
+.anatomy-row{display:grid;grid-template-columns:300px 1fr 1.15fr;gap:40px;align-items:start;
+    border-top:1px solid var(--ink-20);padding:17px 0;}
+.anatomy-row:last-child{border-bottom:1px solid var(--ink-20);}
+.anatomy-name .num{display:block;font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.anatomy-name .nm{font-weight:800;font-size:27px;line-height:1.1;color:var(--ink);}
+.anatomy-cell .lbl{display:block;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-45);margin-bottom:6px;}
+.anatomy-cell p{font-size:17px;line-height:1.5;color:var(--ink-75);}
+
+/* ===========================================================
+   FLOW DIAGRAM (pipeline steps)
+   =========================================================== */
+.flow-diagram{display:flex;align-items:stretch;flex-wrap:wrap;gap:16px;}
+.flow-step{flex:1;min-width:150px;border:1px solid var(--ink-20);padding:22px 20px;display:flex;flex-direction:column;gap:10px;}
+.flow-step .fn{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.flow-step .ft{font-weight:800;font-size:19px;line-height:1.15;color:var(--ink);}
+.flow-step .fd{font-size:14px;line-height:1.45;color:var(--ink-55);}
+
+/* Spacing helpers */
+.stack>*+*{margin-top:var(--gap-md);}
+.stack-lg>*+*{margin-top:var(--gap-lg);}
+.mt-sm{margin-top:var(--gap-sm);}
+.mt-md{margin-top:var(--gap-md);}
+.mt-lg{margin-top:var(--gap-lg);}
+.maxw{max-width:62%;}
+
+/* ===========================================================
+   ANIMATIONS
+   =========================================================== */
+.reveal{opacity:0;transform:translateY(34px);
+    transition:opacity .6s var(--ease),transform .6s var(--ease);}
+.slide.visible .reveal{opacity:1;transform:none;}
+.reveal-wipe{opacity:0;clip-path:inset(0 0 100% 0);
+    transition:opacity .7s var(--ease),clip-path .9s var(--ease-slide);}
+.slide.visible .reveal-wipe{opacity:1;clip-path:inset(0 0 0 0);}
+
+/* ===========================================================
+   PRESENTATION CHROME
+   =========================================================== */
+.deck-counter{position:fixed;right:26px;bottom:22px;z-index:1000;
+    font-family:var(--font-mono);font-size:13px;letter-spacing:.16em;
+    color:rgba(251,245,240,.55);}
+.deck-counter .cur{color:var(--orange);}
+.nav-dots{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1000;
+    display:flex;gap:12px;}
+.nav-dots button{width:9px;height:9px;border-radius:50%;border:1px solid rgba(251,245,240,.4);
+    background:transparent;cursor:pointer;padding:0;transition:all .3s var(--ease);}
+.nav-dots button.on{background:var(--orange);border-color:var(--orange);transform:scale(1.15);}
+
+/* Inline editing */
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.edit-toggle{position:fixed;top:18px;left:18px;z-index:10001;width:46px;height:46px;
+    border:1px solid var(--orange);background:var(--ink);color:var(--cream);font-size:18px;
+    cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}
+.edit-toggle.active{background:var(--orange);color:var(--ink);}
+body.editing [data-ed]{outline:1px dashed rgba(216,77,60,.7);outline-offset:4px;cursor:text;}
+body.editing [data-ed]:focus{outline:1px solid var(--orange);}
+.edit-hint{position:fixed;top:18px;left:74px;z-index:10001;font-family:var(--font-mono);
+    font-size:12px;letter-spacing:.1em;color:var(--cream-muted);background:var(--ink);
+    padding:14px 12px;border:1px solid var(--border-dark);display:none;}
+body.editing .edit-hint{display:block;}
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- ============================================================
+     SLIDE 01 — TITLE / FRAMING
+     ============================================================ -->
+<section class="slide orange active">
+    <header style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span class="broadside-num reveal" data-ed>№ 01 — 10</span>
+        <span class="broadside-num reveal" data-ed>第3周 · 实验深度解析 · EVBot</span>
+    </header>
+
+    <div class="slide-body" style="flex-direction:row;align-items:stretch;gap:0;">
+        <div style="flex:1.1;display:flex;flex-direction:column;justify-content:center;
+                    padding-right:72px;border-right:1px solid var(--ink-20);">
+            <div class="kicker reveal" data-ed>本周实验深度解析 · evbot</div>
+            <div class="rule reveal mt-md"></div>
+            <h1 class="display reveal-wipe mt-md" style="font-size:140px;text-transform:none;" data-ed>EVBot。</h1>
+            <h2 class="h3 reveal mt-md" style="font-weight:700;" data-ed>一个真实系统，六个组件，每个决策都清晰可见</h2>
+            <p class="lead reveal mt-md" data-ed>这周的课程讲了 Skill——把一个反复出现的流程打包起来，这样 Claude 不用你每次重新
+                解释就能调用它。EVBot 正是这堂课的载体：这是一个真实、可运行的电动车问答聊天机器人——
+                每个问题在到达你面前之前，都会经过检查、路由、检索、生成答案、评判和安全检查。</p>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-left:72px;">
+            <span class="kicker reveal" data-ed>这份讲义包含什么</span>
+            <ul class="bs-list reveal mt-md">
+                <li data-ed>完整流水线——运行了什么、按什么顺序运行、什么情况会提前结束请求</li>
+                <li data-ed>护栏、路由器、RAG、评判模型和记忆——每一个到底决定了什么</li>
+                <li data-ed>Gradio 调试面板和 <code>uv</code>——你将如何查看和运行这一切</li>
+                <li data-ed>评判模型的评分标准，打包成一个 Claude Code Skill</li>
+                <li data-ed>六步实验练习本身，对照你刚学到的内容</li>
+            </ul>
+            <p class="lead reveal mt-lg" data-ed>不只是这六个部分存在——而是为什么每一个都是这样构建的。</p>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 02 — ARCHITECTURE / DATA FLOW
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>流水线 · 一次查询，从头到尾</span>
+        <span data-ed>02 — 10</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>整条流水线，一次查询的完整过程</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:42px;" data-ed>在你看到答案之前，会运行九个步骤——其中两个可能提前结束请求。</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>1. 读取会话记忆</b> —— 本次会话最近的对话轮次，让代词类的追问能被正确解析。</li>
+            <li data-ed><b>2. 输入护栏</b> —— 主题相关性检查；离题问题会在这里退出，在其他任何环节运行之前。</li>
+            <li data-ed><b>3. 路由器</b> —— 判断查询是简单还是复杂；这是一个基于规则的决策，不调用 LLM。</li>
+            <li data-ed><b>4. RAG 检索</b> —— 从 Chroma 知识库中取出相关的电动车文档。</li>
+            <li data-ed><b>5a. 简单路径</b> —— 由小模型直接生成一个答案，直接进入输出护栏。</li>
+            <li data-ed><b>5b. 复杂路径</b> —— 生成两个候选答案，小模型和大模型各一个，使用相同的检索上下文。</li>
+            <li data-ed><b>6. 评判模型（仅复杂路径）</b> —— 为两个候选答案打分，并选出或合并出一个胜出答案。</li>
+            <li data-ed><b>7. 输出护栏</b> —— 扫描最终答案中的个人身份信息、不当内容和缺乏依据的说法。</li>
+            <li data-ed><b>8. 写入会话记忆</b> —— 这一轮对话被持久化保存，完整的追踪记录会显示在调试面板中。</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>这九个步骤里有两个是提前退出——会跳过后续所有环节——这是刻意设计的，也是接下来两页的主线。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 03 — GUARDRAILS
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>护栏 · 每个答案的前后把关</span>
+        <span data-ed>03 — 10</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>每个答案前后都会运行什么</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:38px;" data-ed>两道护栏，两种不同的职责——一道防止坏输入触达模型，另一道防止坏输出触达你。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed>输入护栏是一次快速的、以确定性规则为主的关键词匹配，针对电动车相关词汇；只有在情况
+                模糊时，才会退回到一次性的 LLM 分类调用——而且这次调用会拿到对话历史，这样像"它多少钱？"
+                这样的追问就能正确解析代词，而不会被误判为离题。输出护栏则打包了三项检查：个人身份信息
+                （PII）的正则扫描、基于关键词的不当内容检查，以及一个 LLM 依据性检查——它会把答案的每
+                一句话标记为"有依据支持"或"无依据支持"，对照检索到的上下文。</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>输入护栏</b>会在路由器、RAG 或任何模型调用运行之前就拒绝/引导离题问题——在调试面板中显示为 <code>early_exit: true</code>。</li>
+            <li data-ed><b>输出护栏的依据性检查</b>，正是"这在我的知识库里没有"这种诚实回退回答的来源，而不是一个听起来很自信的猜测。</li>
+            <li data-ed><b>两道护栏都是"确定性规则优先，LLM 兜底在后"</b>——先跑便宜的检查，再跑昂贵的检查。</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>一个说不清自己为什么拦截了内容的护栏，只是一个过滤器。这一个每次都会在调试面板里展示它的推理过程。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 04 — THE ROUTER
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>路由器 · 关乎成本，而不只是能力</span>
+        <span data-ed>04 — 10</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>决定一个查询该用哪个模型——以及走多少流程</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:40px;" data-ed>路由器真正做的决定，不是哪个模型来回答。而是评判模型到底要不要运行。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed><code>classify_complexity()</code> 是基于规则的，不是一次 LLM 调用——依据字数、比较类
+                关键词（"compare"、"vs"、"pros and cons"），以及多模型提及检测。一个简单的事实性问题会
+                由小而快的模型直接给出一个答案，然后直接进入输出护栏。一个复杂或比较类的问题，会生成两个
+                完整的候选答案——小模型和大模型各一个，使用同样检索到的上下文——只有到这时，评判模型才会
+                被调用来在两者之间做出选择。</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>简单路径：</b>1 次模型调用，0 次评判模型调用。</li>
+            <li data-ed><b>复杂路径：</b>2 次模型调用，1 次评判模型调用（而评判本身又是一次模型调用）。</li>
+            <li data-ed>这是一个成本/延迟的杠杆，不只是质量的杠杆——大多数问题并不需要第二意见。</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>每一次"复杂"查询的模型调用成本大约是"简单"查询的 3 倍。路由器的职责，就是确保这个成本只在问题真正需要的时候才被付出。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 05 — RAG / KNOWLEDGE BASE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>RAG · 答案到底从哪里来</span>
+        <span data-ed>05 — 10</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>答案究竟从哪里来</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:38px;" data-ed>知识库里是真实的电动车品牌、真实的参数，也刻意留有缺口——这些缺口就是作业，不是缺陷。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed><code>data/ev_docs/</code> 里是真实品牌的内容——特斯拉 Model 3、Rivian R1T、福特
+                Mustang Mach-E、雪佛兰 Bolt、现代 Ioniq 5——覆盖车型参数、充电、补贴政策和电池/维护四个
+                类别，每一份都明确标注了日期，并说明是示意性内容而非实时报价。摄取脚本
+                （<code>evbot/rag/ingest.py</code>）手工对 Markdown 分块，通过 Chroma 内置的本地 ONNX
+                模型做嵌入（不需要外部嵌入 API 密钥），并且每次运行都会幂等地重建整个集合。</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>这一阶段没有网页搜索</b>——刻意只用 RAG，这样检索这一步就容易推理。</li>
+            <li data-ed><b>知识库里完全没有电动车保险费用的信息</b>——这个缺口正是实验练习第4步要暴露出来的东西。</li>
+            <li data-ed>检索深度（<code>k</code>）在复杂/比较类查询里比简单查询更大——一个比较类问题需要更多的文档块，才能把两辆车都讲清楚依据。</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>一个不完整的知识库不是需要隐藏的缺陷——配合输出护栏的依据性检查，它正是让"我不知道"成为一种可见的、正确的行为，而不是一次静默的失败。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 06 — LLM-AS-JUDGE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>LLM-as-judge · 打分，而非生成</span>
+        <span data-ed>06 — 10</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>评估质量，而不是生成内容</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:38px;" data-ed>评判模型从不自己写答案。它唯一的工作，是决定两个候选答案里哪一个配得上呈现给你。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed>对于复杂查询，<code>judge.py</code> 会把两个候选答案——都基于完全相同的检索上下文——
+                连同一份四项标准的评分标准（准确性、完整性、依据性、清晰度，每项 1-5 分）一起发给更大的
+                本地模型。评判模型随后应用一套决策策略：选出明确的胜出者，或者合并两者中最强的部分，并
+                给出解释这次判断的理由。</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>两个候选答案使用相同的检索上下文</b>——评判模型比较的是模型质量，而不是谁拿到了更好的信息。</li>
+            <li data-ed>输出是一个 <code>JudgeResult</code>：胜出者、合并后的答案、理由，以及完整的分数明细——全部都能在调试面板里看到。</li>
+            <li data-ed>评判本身运行在更大、更强的模型上——评判被视为比回答更难的工作。</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>这正是本篇讲义后面会被打包成 Claude Code Skill 的那一部分——一套值得单独调用的评分标准，而不只是埋在一个文件里。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 07 — MEMORY (SESSION VS. KNOWLEDGE BASE)
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>记忆 · 两套系统，两种职责</span>
+        <span data-ed>07 — 10</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>两个都叫"记忆"的系统，做着两件不同的事</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:36px;" data-ed>会话记忆记住的是你的对话。知识库记住的是这个世界。把两者混为一谈，会同时破坏两者。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed><code>evbot/memory.py</code> 是一个基于 SQLite 的对话日志——<code>append_turn</code> 和
+                <code>get_recent_turns</code>——它会跨应用重启持久保存，并且在每一轮对话开始时都会被
+                读取，这样代词类的追问才能被正确解析。它在架构上和 RAG 检索时使用的 Chroma 知识库是
+                完全独立的：一个随着每次对话不断变化，另一个只有在有人重新摄取文档时才会变化。</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>会话记忆：</b>按会话独立、不断增长、跨重启保留，和电动车事实本身毫无关系。</li>
+            <li data-ed><b>知识库：</b>所有会话共享、只有在重新摄取时才变化，和是谁在提问毫无关系。</li>
+            <li data-ed>实验练习第5步直接测试了这一点：在对话进行到一半时重启应用，确认记忆能保留下来，而知识库完全没有变化。</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>如果这两者存放在同一张表里，添加一份电动车文档看起来就会像是"这个机器人从和你的对话里学到了什么"——但事实并非如此，而且会让调试变得困难得多。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 08 — GRADIO UI + UV
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>你能看到的界面，和背后运行的一切</span>
+        <span data-ed>08 — 10</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>你能看到什么，以及背后运行的是什么</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:38px;" data-ed>特意加了第二个面板，就是为了让这个系统里没有任何一处是黑箱。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed><code>app.py</code> 构建了一个 Gradio <code>gr.Blocks</code> 界面——刻意没有用更高层的
+                <code>ChatInterface</code>——因为它需要在聊天面板旁边再放一个"幕后"面板，展示每一轮对话
+                的完整追踪记录：护栏的判定结果、路由器的决策、检索到的文档片段、候选答案、评判模型的分数
+                和理由（如果评判运行了的话），以及记忆的读写情况。而在这一切之下，<code>uv</code> 管理着
+                Python 环境——<code>pyproject.toml</code> 加上一份提交到仓库的 <code>uv.lock</code>——这是
+                本课程第一次用到 <code>uv</code>。</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>这个调试面板不是摆设——实验练习里的每一个检查点，都是"确认调试面板显示了 X"。</li>
+            <li data-ed>选 <code>gr.Blocks</code> 而不是 <code>ChatInterface</code> 是刻意的取舍：多写一些代码，换来对第二个面板的完全控制。</li>
+            <li data-ed><code>uv run pytest</code>、<code>uv run python -m evbot.rag.ingest</code>、<code>uv run python -m evbot.app</code>——同一个环境，三个不同的入口。</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>可观察性是这个实验的硬性要求，而不是事后补上的东西——你不应该需要靠猜测，才能知道是哪个组件做出了某个决定。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 09 — PACKAGING THE JUDGE AS A SKILL
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>回到这周真正的课程内容</span>
+        <span data-ed>09 — 10</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>回到这周真正的课程内容</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:34px;" data-ed>评判模型的评分标准，是 EVBot 里唯一真正值得打包成 Skill 的部分——这里说明为什么护栏不是。</h2>
+            <p class="body reveal mt-md maxw" style="font-size:18px;" data-ed><code>.claude/skills/answer-quality-judge/SKILL.md</code> 把评判模型的四项评分标准和
+                决策策略打包成了一个可调用的 Skill——它的 frontmatter 描述会在"给这两份答案打分"或
+                "哪个回答更好"这类提示词上触发，而且它的字段名和 <code>judge.py</code> 里的
+                <code>RUBRIC_PROMPT</code> 完全一致。输入/输出护栏则刻意没有这样打包：它们是廉价的、
+                确定性的、为了延迟而内联的检查，不是一个值得在应用之外单独调用的多维度判断。</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>这周课程里的同一套检验标准：</b>它是否在不同场景里反复出现、是否是一个判断（而非机械执行）、能否用一句话说清楚、做错了是否会造成真实代价——评判模型的评分标准四项全过，护栏的关键词扫描完全不需要。</li>
+            <li data-ed>实验练习第6步会让你把 <code>SKILL.md</code> 和 <code>judge.py</code> 的评分标准做对比，然后在一次 Claude Code 会话里直接对两份粘贴进去的答案调用这个 Skill。</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>整个应用已经在运行这套评分标准了。这个 Skill 存在的意义，是让你不用打开 <code>judge.py</code>，就能在任何两个答案上跑同一套判断，随时随地。</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 10 — THE LAB EXERCISE ITSELF
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>实验练习 · 六个步骤，六个检查点</span>
+        <span data-ed>10 — 10</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>你实际会做的事，一步一步来</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:36px;" data-ed>六个步骤，六个检查点——每一个都是为了让某个具体的架构决策，在调试面板里清晰可见。</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>1. 一个简单的、知识库内的问题</b>——确认评判模型是 null；路由器跳过了它。</li>
+            <li data-ed><b>2. 一个离题问题</b>——确认 <code>early_exit: true</code>；路由器/RAG/评判模型都没有运行。</li>
+            <li data-ed><b>3. 一个真正的比较类问题</b>——确认两个候选答案都出现了，并读一读评判模型给出的理由。</li>
+            <li data-ed><b>4. 一个知识库没覆盖的问题</b>（电动车保险费用）——确认得到的是诚实的"这不在我的知识库里"回退回答，而不是一个猜测。</li>
+            <li data-ed><b>5. 一次带代词追问的两轮对话，然后重启应用</b>——确认记忆在重启后依然保留，而知识库完全没有变化。</li>
+            <li data-ed><b>6. 打开 <code>SKILL.md</code>，对照 <code>judge.py</code></b>——确认评分标准一致，然后直接对两份粘贴进去的答案调用这个 Skill。</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>以上每一个检查点都对应本讲义里的一页——如果某个检查点的行为和对应那一页预测的不一样，那正是调试练习本身，而不是对它的干扰。</p>
+    </div>
+</section>
+
+</main>
+</div>
+
+<!-- Presentation chrome (outside the scaled stage) -->
+<div class="deck-counter"><span class="cur" id="curNum">01</span> / <span id="totNum">10</span></div>
+<nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+<!-- Inline editing affordance -->
+<div class="edit-hotzone" aria-hidden="true"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">✎</button>
+<div class="edit-hint">EDIT MODE · click any text · Ctrl+S saves · ⤓ exports</div>
+
+<script>
+/* ===========================================================
+   SLIDE CONTROLLER
+   =========================================================== */
+class SlidePresentation{
+    constructor(){
+        this.stage=document.getElementById('deckStage');
+        this.slides=[...document.querySelectorAll('.slide')];
+        this.current=0;
+        this.buildDots();
+        this.setupStageScale();
+        this.setupNav();
+        this.show(0);
+    }
+    setupStageScale(){
+        const scale=()=>{
+            const f=Math.min(window.innerWidth/1920,window.innerHeight/1080);
+            const x=(window.innerWidth-1920*f)/2;
+            const y=(window.innerHeight-1080*f)/2;
+            this.stage.style.transform=`translate(${x}px,${y}px) scale(${f})`;
+        };
+        scale();
+        window.addEventListener('resize',scale);
+    }
+    buildDots(){
+        const wrap=document.getElementById('navDots');
+        this.slides.forEach((_,i)=>{
+            const b=document.createElement('button');
+            b.setAttribute('aria-label','Go to slide '+(i+1));
+            b.addEventListener('click',()=>this.show(i));
+            wrap.appendChild(b);
+        });
+        this.dots=[...wrap.children];
+        document.getElementById('totNum').textContent=String(this.slides.length).padStart(2,'0');
+    }
+    setupNav(){
+        document.addEventListener('keydown',e=>{
+            if(e.target.getAttribute&&e.target.getAttribute('contenteditable')==='true')return;
+            if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();this.next();}
+            else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.prev();}
+            else if(e.key==='Home'){this.show(0);}
+            else if(e.key==='End'){this.show(this.slides.length-1);}
+        });
+        let wheelLock=false;
+        window.addEventListener('wheel',e=>{
+            if(document.body.classList.contains('editing'))return;
+            if(wheelLock)return;
+            if(Math.abs(e.deltaY)<24)return;
+            wheelLock=true;setTimeout(()=>wheelLock=false,700);
+            e.deltaY>0?this.next():this.prev();
+        },{passive:true});
+        let sx=0,sy=0;
+        window.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+        window.addEventListener('touchend',e=>{
+            const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+            if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){dx<0?this.next():this.prev();}
+        },{passive:true});
+    }
+    show(i){
+        this.current=Math.max(0,Math.min(i,this.slides.length-1));
+        this.slides.forEach((s,n)=>{
+            s.classList.toggle('active',n===this.current);
+            s.classList.toggle('visible',n===this.current);
+        });
+        this.dots.forEach((d,n)=>d.classList.toggle('on',n===this.current));
+        document.getElementById('curNum').textContent=String(this.current+1).padStart(2,'0');
+    }
+    next(){this.show(this.current+1);}
+    prev(){this.show(this.current-1);}
+}
+
+/* ===========================================================
+   INLINE EDITOR
+   =========================================================== */
+class Editor{
+    constructor(){
+        this.isActive=false;
+        this.els=[...document.querySelectorAll('[data-ed]')];
+        this.restore();
+        this.wire();
+    }
+    key(){return 'broadside-deck-week3-lab-deep-dive-zh::'+location.pathname;}
+    restore(){
+        try{
+            const saved=JSON.parse(localStorage.getItem(this.key())||'null');
+            if(saved&&Array.isArray(saved)&&saved.length===this.els.length){
+                this.els.forEach((el,i)=>{if(saved[i]!=null)el.innerHTML=saved[i];});
+            }
+        }catch(_){}
+    }
+    save(){
+        try{localStorage.setItem(this.key(),JSON.stringify(this.els.map(el=>el.innerHTML)));}catch(_){}
+    }
+    toggleEditMode(){
+        this.isActive=!this.isActive;
+        document.body.classList.toggle('editing',this.isActive);
+        document.getElementById('editToggle').classList.toggle('active',this.isActive);
+        this.els.forEach(el=>{
+            el.setAttribute('contenteditable',this.isActive?'true':'false');
+            if(this.isActive){el.addEventListener('input',this._oninput);}
+        });
+    }
+    _oninput=()=>this.save();
+    export(){
+        const clone=document.documentElement.cloneNode(true);
+        clone.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+        clone.querySelectorAll('.edit-hotzone,.edit-toggle,.edit-hint').forEach(n=>n.remove());
+        const html='<!DOCTYPE html>\n'+clone.outerHTML;
+        const blob=new Blob([html],{type:'text/html'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='week3-lab-deep-dive-broadside-zh.html';
+        a.click();
+    }
+    wire(){
+        const toggle=document.getElementById('editToggle');
+        const hotzone=document.querySelector('.edit-hotzone');
+        let hideTimeout=null;
+        toggle.addEventListener('click',()=>this.toggleEditMode());
+        hotzone.addEventListener('mouseenter',()=>{clearTimeout(hideTimeout);toggle.classList.add('show');});
+        hotzone.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        toggle.addEventListener('mouseenter',()=>clearTimeout(hideTimeout));
+        toggle.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        hotzone.addEventListener('click',()=>this.toggleEditMode());
+        document.addEventListener('keydown',e=>{
+            if((e.key==='e'||e.key==='E')&&e.target.getAttribute&&e.target.getAttribute('contenteditable')!=='true'){this.toggleEditMode();}
+            if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();this.save();this.flash('saved');}
+            if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='e'&&this.isActive){e.preventDefault();this.export();}
+        });
+    }
+    flash(msg){
+        const hint=document.querySelector('.edit-hint');
+        if(!hint)return;const prev=hint.textContent;hint.textContent=msg.toUpperCase();
+        setTimeout(()=>hint.textContent=prev,1000);
+    }
+}
+
+const deck=new SlidePresentation();
+const editor=new Editor();
+</script>
+</body>
+</html>

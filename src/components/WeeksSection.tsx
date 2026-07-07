@@ -12,7 +12,21 @@ const WEEK_LABELS = [
 const AVAILABLE_ENGLISH = [0, 1, 2, 3]
 const AVAILABLE_MANDARIN: number[] = [0, 1, 2, 3]
 
-function DeckLink({ num, lang, available }: { num: number; lang: 'english' | 'mandarin'; available: boolean }) {
+// Lab decks available at /weeks/wN_lab_english.html / /weeks/wN_lab_mandarin.html.
+const AVAILABLE_LAB_ENGLISH: number[] = [3]
+const AVAILABLE_LAB_MANDARIN: number[] = [3]
+
+function DeckLink({
+  num,
+  lang,
+  available,
+  lab = false,
+}: {
+  num: number
+  lang: 'english' | 'mandarin'
+  available: boolean
+  lab?: boolean
+}) {
   const label = lang === 'english' ? 'English' : '中文'
 
   if (!available) {
@@ -21,7 +35,7 @@ function DeckLink({ num, lang, available }: { num: number; lang: 'english' | 'ma
 
   return (
     <a
-      href={`/weeks/w${num}_${lang}.html`}
+      href={`/weeks/w${num}${lab ? '_lab' : ''}_${lang}.html`}
       target="_blank"
       rel="noreferrer"
       className="text-white/80 hover:text-white underline transition-colors"
@@ -48,6 +62,9 @@ export default function WeeksSection() {
             const enAvailable = AVAILABLE_ENGLISH.includes(num)
             const zhAvailable = AVAILABLE_MANDARIN.includes(num)
             const anyAvailable = enAvailable || zhAvailable
+            const labEnAvailable = AVAILABLE_LAB_ENGLISH.includes(num)
+            const labZhAvailable = AVAILABLE_LAB_MANDARIN.includes(num)
+            const anyLabAvailable = labEnAvailable || labZhAvailable
 
             return (
               <div
@@ -64,6 +81,19 @@ export default function WeeksSection() {
                   <span className="text-white/30">&amp;</span>
                   <DeckLink num={num} lang="mandarin" available={zhAvailable} />
                 </div>
+
+                {anyLabAvailable && (
+                  <>
+                    <p className="text-white/50 text-xs uppercase tracking-widest mb-3 mt-3">
+                      Lab deck
+                    </p>
+                    <div className="flex gap-3 text-sm">
+                      <DeckLink num={num} lang="english" available={labEnAvailable} lab />
+                      <span className="text-white/30">&amp;</span>
+                      <DeckLink num={num} lang="mandarin" available={labZhAvailable} lab />
+                    </div>
+                  </>
+                )}
               </div>
             )
           })}
