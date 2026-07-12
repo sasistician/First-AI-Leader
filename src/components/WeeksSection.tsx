@@ -9,8 +9,8 @@ const WEEK_LABELS = [
 
 // Decks available at /weeks/wN_english.html / /weeks/wN_mandarin.html.
 // Add a week number to a list once that language's file exists in public/weeks/.
-const AVAILABLE_ENGLISH = [0, 1, 2, 3]
-const AVAILABLE_MANDARIN: number[] = [0, 1, 2, 3]
+const AVAILABLE_ENGLISH = [0, 1, 2, 3, 4]
+const AVAILABLE_MANDARIN: number[] = [0, 1, 2, 3, 4]
 
 // Lab decks available at /weeks/wN_lab_english.html / /weeks/wN_lab_mandarin.html.
 const AVAILABLE_LAB_ENGLISH: number[] = [3]
