@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 5 — Orchestration, Guardrails &amp; Evaluation | The AI-First Engineer</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700;800;900&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================
+   THEME TOKENS — CORAL PALETTE (matches week0/week1/week2/week3/week4 broadside)
+   =========================================================== */
+:root{
+    --ink:#1A0D0A;
+    --ink-alt:#221210;
+    --orange:#D84D3C;
+    --cream:#FBF5F0;
+    --cream-muted:#9C8078;
+    --cream-hint:#604840;
+    --border-dark:#2C1510;
+    --ink-75:rgba(26,13,10,.75);
+    --ink-55:rgba(26,13,10,.55);
+    --ink-45:rgba(26,13,10,.45);
+    --ink-20:rgba(26,13,10,.20);
+
+    --font-display:'Barlow',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+
+    --display:184px;
+    --h1:140px;
+    --h2:86px;
+    --h3:50px;
+    --stat:104px;
+    --lead:31px;
+    --body:23px;
+    --caption:17px;
+    --label:14px;
+
+    --pad-x:106px;
+    --pad-y:62px;
+    --gap-lg:40px;
+    --gap-md:24px;
+    --gap-sm:12px;
+
+    --ease:cubic-bezier(0.16,1,0.3,1);
+    --ease-slide:cubic-bezier(0.77,0,0.175,1);
+    --stage-bg:#000;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ===========================================================
+   FIXED 16:9 STAGE (viewport-base.css contents)
+   =========================================================== */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg,#fff);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff);}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+img,video,canvas,svg{max-width:100%;max-height:100%;}
+.deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000;}
+@media print{
+    html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
+    .deck-viewport{position:static;overflow:visible;background:#fff;}
+    .deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none;}
+    .slide{position:relative;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
+    .slide:last-child{break-after:auto;page-break-after:auto;}
+    .deck-controls{display:none!important;}
+}
+@media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.2s!important;}
+}
+
+/* ===========================================================
+   SLIDE FRAME
+   =========================================================== */
+.slide{
+    display:flex;flex-direction:column;
+    padding:var(--pad-y) var(--pad-x);
+    background:#FDEAE4;color:var(--ink);
+    font-family:var(--font-display);
+}
+.slide.orange{background:#FDEAE4;color:var(--ink);}
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;}
+
+/* ===========================================================
+   CHROME
+   =========================================================== */
+.chrome{display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);}
+.chrome.top{border-bottom:1px solid var(--ink-20);padding-bottom:var(--gap-sm);}
+.chrome.bot{border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);margin-top:var(--gap-md);}
+
+/* ===========================================================
+   TYPE
+   =========================================================== */
+.kicker{font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.display{font-weight:900;font-size:var(--display);line-height:.88;letter-spacing:-.04em;text-transform:lowercase;}
+.h2{font-weight:800;font-size:var(--h2);line-height:1.02;letter-spacing:-.03em;}
+.h3{font-weight:700;font-size:var(--h3);line-height:1.08;letter-spacing:-.02em;}
+.lead{font-weight:400;font-size:var(--lead);line-height:1.45;color:var(--ink-75);}
+.body{font-size:var(--body);line-height:1.55;color:var(--ink-75);}
+
+.rule{width:36px;height:2px;background:var(--orange);border:0;}
+
+.broadside-num{font-family:var(--font-mono);font-size:22px;font-weight:500;
+    letter-spacing:.1em;color:var(--ink-45);}
+
+.tag{display:inline-block;font-family:var(--font-mono);font-size:var(--label);font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--orange);
+    border:1px solid var(--orange);padding:.4em .8em;}
+
+/* ===========================================================
+   BROADSIDE BULLET LIST
+   =========================================================== */
+.bs-list{list-style:none;}
+.bs-list li{position:relative;padding-left:1.7em;font-size:var(--lead);line-height:1.32;
+    color:var(--ink);margin-bottom:var(--gap-md);}
+.bs-list li:last-child{margin-bottom:0;}
+.bs-list li::before{content:"/";position:absolute;left:0;top:0;color:var(--orange);
+    font-family:var(--font-mono);font-weight:700;}
+.bs-list.small li{font-size:20px;line-height:1.4;}
+
+/* ===========================================================
+   OUTCOME PILLARS
+   =========================================================== */
+.outcome-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+    border-top:1px solid var(--ink-20);padding-top:20px;}
+.outcome-item{padding-right:20px;}
+.outcome-item .on{display:block;font-family:var(--font-mono);font-size:11px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-55);margin-bottom:6px;}
+.outcome-item .ot{font-weight:800;font-size:20px;line-height:1.1;color:var(--ink);}
+
+/* ===========================================================
+   TODAY'S MAP (cover slide, right panel) / decision lists
+   =========================================================== */
+.map-list{display:flex;flex-direction:column;}
+.map-item{display:flex;gap:24px;align-items:flex-start;padding:18px 0;border-top:1px solid var(--ink-20);}
+.map-item:first-child{border-top:none;padding-top:0;}
+.map-num{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:.1em;
+    color:var(--orange);min-width:64px;flex-shrink:0;padding-top:4px;}
+.map-text .mt{font-weight:800;font-size:22px;color:var(--ink);line-height:1.2;}
+.map-text .md{font-size:15px;color:var(--ink-55);margin-top:5px;line-height:1.45;}
+
+/* ===========================================================
+   FLOW DIAGRAM / COMPARE CARDS
+   =========================================================== */
+.flow-diagram{display:flex;align-items:stretch;}
+.flow-step{flex:1;border:1px solid var(--ink-20);padding:30px 28px;display:flex;flex-direction:column;gap:12px;}
+.flow-step .fn{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.flow-step .fc{font-family:var(--font-mono);font-weight:700;font-size:30px;color:var(--ink);letter-spacing:-.01em;}
+.flow-step .ft{font-weight:800;font-size:24px;line-height:1.1;color:var(--ink);}
+.flow-step .fd{font-size:16px;line-height:1.5;color:var(--ink-55);}
+.flow-arrow{width:54px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:28px;color:var(--orange);font-weight:700;flex-shrink:0;}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;}
+
+/* ===========================================================
+   CASE CALLOUT / STAT
+   =========================================================== */
+.stat-num{font-weight:900;font-size:var(--stat);line-height:.85;letter-spacing:-.03em;color:var(--orange);}
+.stat-label{font-weight:800;font-size:var(--h2);line-height:1;letter-spacing:-.03em;color:var(--ink);margin-top:8px;}
+.case-callout{border-left:3px solid var(--orange);padding:4px 0 4px 28px;}
+.case-callout .cl{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-45);margin-bottom:6px;display:block;}
+.case-callout p{font-size:18px;line-height:1.55;color:var(--ink-75);}
+
+/* ===========================================================
+   ANATOMY TABLE
+   =========================================================== */
+.anatomy-table{display:flex;flex-direction:column;flex:1;justify-content:center;min-height:0;}
+.anatomy-row{display:grid;grid-template-columns:300px 1fr 1.15fr;gap:40px;align-items:start;
+    border-top:1px solid var(--ink-20);padding:17px 0;}
+.anatomy-row:last-child{border-bottom:1px solid var(--ink-20);}
+.anatomy-name .num{display:block;font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.anatomy-name .nm{font-weight:800;font-size:27px;line-height:1.1;color:var(--ink);}
+.anatomy-cell .lbl{display:block;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-45);margin-bottom:6px;}
+.anatomy-cell p{font-size:17px;line-height:1.5;color:var(--ink-75);}
+
+/* 3-cell variant: three prose cells (no bold name column) — used where the
+   first column holds a full phrase/quote rather than a short label. */
+.anatomy-table.cells-3 .anatomy-row{grid-template-columns:1fr .62fr 1.3fr;}
+.anatomy-table.cells-3 .anatomy-cell:first-child p{font-weight:700;color:var(--ink);}
+
+/* ===========================================================
+   THREE-COLUMN ARCHITECTURE / LAYER COMPARISON
+   =========================================================== */
+.arch-diagram{display:flex;align-items:stretch;gap:0;}
+.arch-col{flex:1;border:1px solid var(--ink-20);padding:30px 34px;display:flex;flex-direction:column;gap:16px;}
+.arch-col .ac-title{font-family:var(--font-mono);font-size:13px;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--orange);}
+.arch-layer{border-top:2px solid var(--ink-20);padding:14px 0 0;}
+.arch-layer.attn{border-color:var(--orange);}
+.arch-layer .al-name{font-weight:800;font-size:20px;color:var(--ink);line-height:1.15;}
+.arch-layer .al-desc{font-size:14px;line-height:1.4;color:var(--ink-55);margin-top:4px;}
+.arch-col .ac-x{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;color:var(--ink-45);
+    text-transform:uppercase;text-align:center;padding-top:6px;}
+
+/* ===========================================================
+   CONTEXT WINDOW BUDGET BAR
+   =========================================================== */
+.ctx-budget-bar{display:flex;width:100%;height:84px;border:1px solid var(--ink-20);}
+.ctx-budget-seg{display:flex;flex-direction:column;justify-content:center;padding:0 22px;
+    border-right:1px solid var(--cream);overflow:hidden;}
+.ctx-budget-seg:last-child{border-right:none;}
+.ctx-budget-seg .cbs-pct{font-family:var(--font-mono);font-weight:700;font-size:22px;}
+.ctx-budget-seg .cbs-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;margin-top:3px;white-space:nowrap;}
+.ctx-budget-legend{display:flex;gap:34px;margin-top:20px;flex-wrap:wrap;}
+.ctx-budget-legend .cbl-item{display:flex;align-items:flex-start;gap:10px;max-width:280px;}
+.ctx-budget-legend .cbl-dot{width:12px;height:12px;flex-shrink:0;margin-top:4px;}
+.ctx-budget-legend .cbl-text{font-size:14.5px;color:var(--ink-55);line-height:1.35;}
+.ctx-budget-legend .cbl-text b{color:var(--ink);}
+
+/* Spacing helpers */
+.stack>*+*{margin-top:var(--gap-md);}
+.stack-lg>*+*{margin-top:var(--gap-lg);}
+.mt-sm{margin-top:var(--gap-sm);}
+.mt-md{margin-top:var(--gap-md);}
+.mt-lg{margin-top:var(--gap-lg);}
+.maxw{max-width:62%;}
+
+/* ===========================================================
+   ANIMATIONS
+   =========================================================== */
+.reveal{opacity:0;transform:translateY(34px);
+    transition:opacity .6s var(--ease),transform .6s var(--ease);}
+.slide.visible .reveal{opacity:1;transform:none;}
+.reveal-wipe{opacity:0;clip-path:inset(0 0 100% 0);
+    transition:opacity .7s var(--ease),clip-path .9s var(--ease-slide);}
+.slide.visible .reveal-wipe{opacity:1;clip-path:inset(0 0 0 0);}
+
+/* ===========================================================
+   PRESENTATION CHROME
+   =========================================================== */
+.deck-counter{position:fixed;right:26px;bottom:22px;z-index:1000;
+    font-family:var(--font-mono);font-size:13px;letter-spacing:.16em;
+    color:rgba(251,245,240,.55);}
+.deck-counter .cur{color:var(--orange);}
+.nav-dots{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1000;
+    display:flex;gap:12px;}
+.nav-dots button{width:9px;height:9px;border-radius:50%;border:1px solid rgba(251,245,240,.4);
+    background:transparent;cursor:pointer;padding:0;transition:all .3s var(--ease);}
+.nav-dots button.on{background:var(--orange);border-color:var(--orange);transform:scale(1.15);}
+
+/* Inline editing */
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.edit-toggle{position:fixed;top:18px;left:18px;z-index:10001;width:46px;height:46px;
+    border:1px solid var(--orange);background:var(--ink);color:var(--cream);font-size:18px;
+    cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}
+.edit-toggle.active{background:var(--orange);color:var(--ink);}
+body.editing [data-ed]{outline:1px dashed rgba(216,77,60,.7);outline-offset:4px;cursor:text;}
+body.editing [data-ed]:focus{outline:1px solid var(--orange);}
+.edit-hint{position:fixed;top:18px;left:74px;z-index:10001;font-family:var(--font-mono);
+    font-size:12px;letter-spacing:.1em;color:var(--cream-muted);background:var(--ink);
+    padding:14px 12px;border:1px solid var(--border-dark);display:none;}
+body.editing .edit-hint{display:block;}
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- ============================================================
+     SLIDE 01 — COVER
+     ============================================================ -->
+<section class="slide orange active">
+    <header style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span class="broadside-num reveal" data-ed>№ 01 — 30</span>
+        <span class="broadside-num reveal" data-ed>Week 5 · Orchestration, Guardrails &amp; Evaluation · 90-min live session</span>
+    </header>
+
+    <div class="slide-body" style="flex-direction:row;align-items:stretch;gap:0;">
+        <div style="flex:1.1;display:flex;flex-direction:column;justify-content:center;
+                    padding-right:72px;border-right:1px solid var(--ink-20);">
+            <div class="kicker reveal" data-ed>the ai-first engineer · claude code builder program</div>
+            <div class="rule reveal mt-md"></div>
+            <h1 class="display reveal-wipe mt-md" style="text-transform:none;" data-ed>Orchestrating.</h1>
+            <h2 class="h3 reveal mt-md" style="font-weight:700;" data-ed>orchestration, guardrails &amp; evaluation + capstone</h2>
+            <p class="lead reveal mt-md" data-ed>Week 3 gave EVBot a packaged Skill. Week 4 gave it a live reach via MCP. Today: making a
+                system of agents you can actually trust to ship — someone supervising them, something
+                catching bad output, a real way to prove "good enough." <b>This is the last FRAME
+                before the capstone becomes real.</b></p>
+        </div>
+
+        <div style="flex:0.9;display:flex;flex-direction:column;justify-content:center;
+                    padding-left:72px;">
+            <span class="kicker reveal" data-ed>today's arc · eight stops</span>
+            <div class="map-list reveal mt-md">
+                <div class="map-item">
+                    <span class="map-num" data-ed>Recap</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>EVBot + MCP, together</span>
+                        <span class="md" data-ed>The two capstone pieces you're walking in with today — and the gap neither one closes.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 1</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Orchestration patterns</span>
+                        <span class="md" data-ed>Principal agents and subagents, supervisor/pipeline/parallel-fan-out, and a worked squad example you'll build for real.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 2</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Guardrails</span>
+                        <span class="md" data-ed>Permissions, sandboxing, approval gates — plus a real launch-gate story from a bank chatbot project.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 3</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Evaluation</span>
+                        <span class="md" data-ed>Building a real eval dataset, LLM-as-judge + human review, and what actually reduces hallucinations.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 4</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Capstone</span>
+                        <span class="md" data-ed>Combine your Skill + MCP server + today's orchestration/guardrails/eval into one supervised system.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Part 5</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Lab: extend EVBot</span>
+                        <span class="md" data-ed>A guided squad lab — before your own capstone, a real supervised system running on EVBot.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Showcase</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Defend it live</span>
+                        <span class="md" data-ed>What the live capstone defense looks like, and how it earns the certification.</span>
+                    </div>
+                </div>
+                <div class="map-item">
+                    <span class="map-num" data-ed>Apply</span>
+                    <div class="map-text">
+                        <span class="mt" data-ed>Audit your own system</span>
+                        <span class="md" data-ed>Run today's checklist against your own capstone idea before you build it.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="display:flex;justify-content:space-between;align-items:flex-end;
+                   border-top:1px solid var(--ink-20);padding-top:var(--gap-sm);">
+        <span class="body reveal" style="color:var(--ink-75);" data-ed>Bilal Farooq · 20 years in data science &amp; AI · six countries</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+            <span class="kicker reveal" data-ed>carrying over from weeks 3-4</span>
+            <span class="reveal" style="font-family:var(--font-mono);font-size:15px;letter-spacing:.08em;color:var(--orange);font-weight:600;" data-ed>EVBot's Skill + judge, and a live MCP web-search tool — both working, neither supervised yet</span>
+        </div>
+    </footer>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 02 — RECAP: TWO WORKING PIECES
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Recap &amp; Bridge · From Weeks 3-4</span>
+        <span data-ed>02 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>what you're walking in with</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>Two working pieces, not yet one system.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Nothing about either piece is broken. EVBot's Skill runs, the MCP server connects — you
+                proved both live in their own labs. What's missing is something above them.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>EVBot (Week 3):</b> guardrails, router, RAG, an LLM-as-judge rubric packaged as a Skill, session memory, a Gradio UI — all local, all internal.</li>
+            <li data-ed><b>The MCP server (Week 4):</b> a live web-search tool, registered with Claude Code, tested against the exact insurance-cost question EVBot's docs couldn't answer.</li>
+            <li data-ed><b>What neither one does:</b> decide when to use which, check either one's output, or block a bad answer before it reaches a user.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 03 — RECAP: NO ONE IS WATCHING THE OUTPUT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Recap &amp; Bridge · From Weeks 3-4</span>
+        <span data-ed>03 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>what's not there yet</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>No one is watching the output.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Right now, if EVBot's own judge scored an answer a 1 out of 5 on its own rubric, or the
+                MCP tool returned garbage, nothing would stop either one from reaching a user. There's no principal
+                deciding whether to trust these two capable pieces, and no repeatable way to prove —
+                before launch — that the combined system is good enough.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>Orchestration:</b> who decides which agent handles what, and who checks the results.</li>
+            <li data-ed><b>Guardrails:</b> what stops bad output before it ships or acts.</li>
+            <li data-ed><b>Evaluation:</b> how you prove "good enough" with evidence, not vibes.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 04 — THE REFRAME (TRANSITION)
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Recap &amp; Bridge · From Weeks 3-4</span>
+        <span data-ed>04 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>the reframe</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>From "it worked in the demo" to "it's ready to ship."</h2>
+            <p class="body reveal mt-md maxw" style="font-size:20px;" data-ed>Every gap on the last slide has the same shape: a single agent, however capable, can't
+                also be the independent thing checking its own work. Generation and verification are
+                different jobs — conflating them means one blind spot does both.</p>
+        </div>
+
+        <p class="lead reveal" data-ed>That's what today's three pieces solve together — who delegates to whom, what stops bad output, and how you prove it's good enough. Starting with orchestration.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 05 — WHY ORCHESTRATION NOW
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Orchestration Patterns · Part 1</span>
+        <span data-ed>05 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>the single-agent ceiling</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>One agent, one thread of reasoning, too many jobs.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Asking one agent call to generate an answer, grade its own accuracy, and decide whether
+                it's safe to ship is asking it to grade its own homework — the same blind spot shows
+                up at every step instead of getting caught.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Generation and verification are different jobs — conflating them in one agent means one blind spot covers both.</li>
+            <li data-ed>Independent agents can run at the same time — wall-clock speed, not just better quality.</li>
+            <li data-ed>A principal agent doesn't need to be smarter than its workers — just needs to know when to fan out and how to combine what comes back.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 06 — CONCEPTS: PRINCIPAL AGENT & SUBAGENT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Orchestration Patterns · Part 1</span>
+        <span data-ed>06 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>two roles, borrowed from claude code itself</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>Principal agent and subagent — the roles behind every pattern.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Before the three shapes on the next slide, the two roles they're built from. A
+                <b>principal agent</b> plans, delegates, and decides how to combine what comes back — it
+                doesn't need to do the narrow work itself, just know when to hand it off. A
+                <b>subagent</b> is launched by the principal for one task, with its own separate context
+                window — it doesn't inherit the principal's full conversation, does its job, returns a
+                result, and its context goes away.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>This isn't a hypothetical abstraction — it's the literal mechanism Claude Code itself uses to run a subagent for a scoped task, the same one today's lab directs directly.</li>
+            <li data-ed>"Supervisor" (the pattern name on the next slide) and "principal agent" (the role) are the same thing — used interchangeably in this course.</li>
+            <li data-ed>A subagent's separate context window is a feature, not a limitation: it's exactly why a grader subagent won't inherit a generator's mistakes.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Every pattern on the next slide is built out of these two roles, combined differently.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 07 — MULTI-AGENT ORCHESTRATION PATTERNS
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Orchestration Patterns · Part 1</span>
+        <span data-ed>07 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>three shapes, one idea: delegate deliberately</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>Supervisor, pipeline, parallel fan-out.</h2>
+        </div>
+
+        <div class="arch-diagram reveal">
+            <div class="arch-col">
+                <span class="ac-title" data-ed>Supervisor / Worker</span>
+                <div class="arch-layer attn">
+                    <div class="al-name" data-ed>One planner, many doers</div>
+                    <div class="al-desc" data-ed>A principal agent plans and delegates; workers execute narrow tasks; results return to the principal to combine.</div>
+                </div>
+            </div>
+            <div class="arch-col">
+                <span class="ac-title" data-ed>Pipeline</span>
+                <div class="arch-layer attn">
+                    <div class="al-name" data-ed>Each stage feeds the next</div>
+                    <div class="al-desc" data-ed>A generator's output becomes a checker's input, becomes a synthesizer's input — run in sequence, not at once.</div>
+                </div>
+            </div>
+            <div class="arch-col">
+                <span class="ac-title" data-ed>Parallel Fan-Out</span>
+                <div class="arch-layer attn">
+                    <div class="al-name" data-ed>Independent work, one barrier</div>
+                    <div class="al-desc" data-ed>Workers with no dependency on each other run concurrently; one synchronization point waits for all before combining.</div>
+                </div>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>Most real systems mix these — exactly what today's worked example does.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 08 — WHEN TO DELEGATE VS. STAY SINGLE-AGENT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Orchestration Patterns · Part 1</span>
+        <span data-ed>08 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>not every task needs a squad</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>Delegate when the work is genuinely independent.</h2>
+        </div>
+
+        <div class="compare-grid reveal">
+            <div class="case-callout">
+                <span class="cl" data-ed>stay single-agent when</span>
+                <p data-ed>The task is small, the context is already loaded, each step depends on the last, or coordination overhead would cost more than it saves.</p>
+            </div>
+            <div class="case-callout">
+                <span class="cl" data-ed>delegate to a squad when</span>
+                <p data-ed>Tasks don't depend on each other's output, each needs a distinct lens, and you want them to run concurrently — or independently, on purpose.</p>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>That last point matters more than it sounds: a grader that shares the generator's context can inherit its blind spots instead of catching them.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 09 — WORKED EXAMPLE: THE SQUAD
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Orchestration Patterns · Part 1</span>
+        <span data-ed>09 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>one principal, five workers</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:42px;" data-ed>The squad: generate, grade, ground-check, test, synthesize.</h2>
+        </div>
+
+        <div class="anatomy-table">
+            <div class="anatomy-row reveal" style="transition-delay:.04s">
+                <div class="anatomy-name"><span class="num" data-ed>01</span><span class="nm" data-ed>Scenario Generator</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Role</span><p data-ed>Produces new Q&amp;A test cases to expand the eval set.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>In the squad</span><p data-ed>Grounded in EVBot's real RAG docs, not invented — context engineering applied to eval, not just to prompting.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.08s">
+                <div class="anatomy-name"><span class="num" data-ed>02</span><span class="nm" data-ed>Accuracy Grader</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Role</span><p data-ed>Scores EVBot's actual answers against the reference Q&amp;A.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>In the squad</span><p data-ed>The same judge rubric from Week 3's Skill — now run as one worker instead of one inline check.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.12s">
+                <div class="anatomy-name"><span class="num" data-ed>03</span><span class="nm" data-ed>Groundedness Checker</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Role</span><p data-ed>Verifies every specific claim traces back to a real source doc.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>In the squad</span><p data-ed>A distinct lens from accuracy — catches confident-sounding fabrication a tone-focused grader would miss.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.16s">
+                <div class="anatomy-name"><span class="num" data-ed>04</span><span class="nm" data-ed>Regression Test-Runner</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Role</span><p data-ed>Runs the existing pytest suite against the current build.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>In the squad</span><p data-ed>Catches functional breaks that have nothing to do with content quality.</p></div>
+            </div>
+            <div class="anatomy-row reveal" style="transition-delay:.2s">
+                <div class="anatomy-name"><span class="num" data-ed>05</span><span class="nm" data-ed>Assessment Synthesizer</span></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>Role</span><p data-ed>Combines every worker's output into one scorecard.</p></div>
+                <div class="anatomy-cell"><span class="lbl" data-ed>In the squad</span><p data-ed>Checked against a launch threshold — this is the actual guardrail gate. No scorecard, no ship.</p></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 10 — THE SQUAD'S FLOW: FAN-OUT, BARRIER, SYNTHESIZE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Orchestration Patterns · Part 1</span>
+        <span data-ed>10 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>the pattern from part 1, exactly</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>Three workers in parallel, then a barrier, then one verdict.</h2>
+        </div>
+
+        <div class="flow-diagram reveal">
+            <div class="flow-step">
+                <span class="fn" data-ed>Fan-out</span>
+                <span class="ft" style="font-size:22px;" data-ed>Grader + Checker + Tester run at once</span>
+                <span class="fd" style="font-size:15.5px;" data-ed>Independent, no shared context — while the Generator works on tomorrow's batch alongside them.</span>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step">
+                <span class="fn" data-ed>Barrier</span>
+                <span class="ft" style="font-size:22px;" data-ed>The Synthesizer waits</span>
+                <span class="fd" style="font-size:15.5px;" data-ed>Nothing proceeds until all three worker outputs are in — the one deliberate synchronization point.</span>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step">
+                <span class="fn" data-ed>Synthesize</span>
+                <span class="ft" style="font-size:22px;" data-ed>One scorecard, pass or fail</span>
+                <span class="fd" style="font-size:15.5px;" data-ed>Checked against the launch threshold. This is the guardrail gate closing or opening.</span>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>Fan-out, barrier, synthesize — independent work in parallel, one deliberate checkpoint before the gate. You'll run exactly this in today's lab.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 11 — GUARDRAILS: WHAT BREAKS AT SCALE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Guardrails · Part 2</span>
+        <span data-ed>11 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>why this needs more than "the model is usually right"</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>What breaks when nothing checks the output.</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>A hallucinated specific — a price, a policy detail — reads exactly as confident as a correct one. Users can't tell the difference; a guardrail has to.</li>
+            <li data-ed>An agent with broad tool access can take an irreversible action from a single bad instruction — the same over-broad-permissions risk from Week 4's MCP checklist, now at the orchestration layer.</li>
+            <li data-ed>Without a gate, "it looked right in the demo" is the only evidence you have before launch.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 12 — PERMISSIONS & SANDBOXING
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Guardrails · Part 2</span>
+        <span data-ed>12 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>least privilege, orchestration-wide</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>Scope what each agent — and each worker — can touch.</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Give each worker only the tools and data its job needs — a grader doesn't need write access; a generator doesn't need to ship anything.</li>
+            <li data-ed>Sandbox anything that executes code or calls external tools, same trust-boundary discipline as Week 4's MCP server, now applied per-agent in a squad.</li>
+            <li data-ed>Log what every agent actually did — you can't audit a decision you didn't record.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Claude Code's own permission modes from Week 1 are one concrete mechanism for this — the same discipline scales from one agent to a squad of them.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 13 — APPROVAL GATES & HUMAN-IN-THE-LOOP
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Guardrails · Part 2</span>
+        <span data-ed>13 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>some decisions still need a person</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>Approval gates: where automation stops on purpose.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Not everything should be fully autonomous. Certain actions — irreversible, high-stakes,
+                low-confidence — should pause for a person to approve before proceeding.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Irreversible actions — send, delete, spend — gate them regardless of confidence score.</li>
+            <li data-ed>Low-confidence or borderline outputs get routed to a person instead of guessed through.</li>
+            <li data-ed>The gate itself needs a clear owner — someone accountable for what passes through it.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 14 — REAL STORY, PART 1: THE LAUNCH GATE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Guardrails · Part 2</span>
+        <span data-ed>14 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>from a real project</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>A bank chatbot that didn't ship until it passed.</h2>
+        </div>
+
+        <div class="case-callout reveal">
+            <span class="cl" data-ed>from a customer-facing chatbot for a major bank</span>
+            <p data-ed>We didn't get to launch on "it looked right." Every release had to clear a gate: pass
+                rigorous testing against a real dataset before it reached a single customer — consistency
+                and hallucination reduction were the whole point of the exercise, not an afterthought.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Several hundred real question-and-answer pairs, built specifically to test for consistency and hallucinations.</li>
+            <li data-ed>No ship without clearing the gate — the guardrail was procedural, not just technical.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 15 — REAL STORY, PART 2: CONTEXT-ENGINEERED SCENARIOS
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Evaluation · Part 3</span>
+        <span data-ed>15 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>the same discipline from week 2, aimed at eval</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>The scenarios were grounded, not invented.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Those several hundred Q&amp;A pairs weren't generic trivia — they were built from real
+                product and policy documents, the same grounding discipline Week 2 applied to CLAUDE.md
+                and RAG, now applied to constructing the test set itself.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Generic test questions catch generic bugs. Real, context-grounded scenarios catch the failures that actually happen in production.</li>
+            <li data-ed>This is exactly what the Scenario Generator worker does in the squad — grounded in EVBot's real docs, not invented from nothing. Today's squad starts from a smaller seed set than "several hundred"; the discipline is the same regardless of scale.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Building the eval set is context engineering. It deserves the same care as grounding the agent itself.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 16 — REAL STORY, PART 3: HYBRID GRADING
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Evaluation · Part 3</span>
+        <span data-ed>16 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>not fully automated, not fully manual</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>LLM-as-judge first pass, human review on what's flagged.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Automated grading against the Q&amp;A dataset caught the bulk of issues fast and cheaply.
+                Borderline or flagged cases went to a human reviewer before anything shipped.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>LLM-as-judge scales — hundreds of Q&amp;A pairs graded fast and consistently, every release.</li>
+            <li data-ed>Human review catches what the judge is uncertain about, or wasn't specified to catch.</li>
+            <li data-ed>Same pattern as EVBot's own judge Skill from Week 3 — just add a human escalation path below a confidence threshold.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 17 — EVALUATION STRATEGIES, GENERALIZED
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Evaluation · Part 3</span>
+        <span data-ed>17 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>the pattern, not just the story</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>Prove it, don't eyeball it.</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Build a real eval dataset — grounded scenarios, not generic ones.</li>
+            <li data-ed>Grade automatically at scale, escalate to humans on low-confidence cases.</li>
+            <li data-ed>Set a numeric threshold and enforce it as a gate — not a suggestion.</li>
+            <li data-ed>Re-run the eval on every meaningful change, not just once before first launch.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 18 — HALLUCINATION REDUCTION IN PRACTICE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Evaluation · Part 3</span>
+        <span data-ed>18 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>no single fix</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>Grounding, guardrails, and eval — together, not separately.</h2>
+        </div>
+
+        <div class="arch-diagram reveal">
+            <div class="arch-col">
+                <span class="ac-title" data-ed>Grounding (Week 2)</span>
+                <div class="arch-layer attn">
+                    <div class="al-name" data-ed>Answers tied to real sources</div>
+                    <div class="al-desc" data-ed>RAG and context engineering give the model something true to stand on before it ever answers.</div>
+                </div>
+            </div>
+            <div class="arch-col">
+                <span class="ac-title" data-ed>Guardrails</span>
+                <div class="arch-layer attn">
+                    <div class="al-name" data-ed>Catch it before it ships</div>
+                    <div class="al-desc" data-ed>Permissions, sandboxing, and approval gates stop an obviously wrong or unsafe output from reaching anyone.</div>
+                </div>
+            </div>
+            <div class="arch-col">
+                <span class="ac-title" data-ed>Evaluation</span>
+                <div class="arch-layer attn">
+                    <div class="al-name" data-ed>Prove it works at scale</div>
+                    <div class="al-desc" data-ed>A real dataset and a hybrid judge turn "seems fine" into a number you can defend.</div>
+                </div>
+            </div>
+        </div>
+
+        <p class="lead reveal" data-ed>Skip any one layer and the other two are covering for a gap they can't fully see.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 19 — PRODUCTION-READINESS CHECKLIST
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Evaluation · Part 3</span>
+        <span data-ed>19 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>before you call it done</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>The checklist.</h2>
+        </div>
+
+        <ul class="bs-list small reveal">
+            <li data-ed>Every irreversible or high-stakes action has an approval gate, or is scoped out of autonomous reach entirely.</li>
+            <li data-ed>Every agent's tool access matches its job, not more.</li>
+            <li data-ed>A real eval dataset exists, grounded in real scenarios, with a numeric pass threshold.</li>
+            <li data-ed>Grading is a hybrid: automated at scale, human-reviewed on the borderline.</li>
+            <li data-ed>The eval re-runs on every meaningful change — not a one-time gate.</li>
+            <li data-ed>Someone is accountable for what the gate lets through.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 20 — CAPSTONE BRIEF
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Capstone · Part 4</span>
+        <span data-ed>20 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>everything comes together</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>Combine your Skill, your server, and today — into one system.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>The capstone is your Skill (Week 3) + your MCP server (Week 4) + orchestration, guardrails,
+                and evaluation (today) — solving a real problem from your own job, defended live.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>A working multi-agent system — not a diagram, something that runs.</li>
+            <li data-ed>Guardrails scoped to your system's actual risks, not generic ones.</li>
+            <li data-ed>An eval approach you can explain and defend.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 21 — CAPSTONE ARCHITECTURE: YOUR OWN SQUAD
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Capstone · Part 4</span>
+        <span data-ed>21 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>the same pattern, your own roles</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>A principal agent, and workers shaped by your problem.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Today's squad — generator, grader, groundedness checker, tester, synthesizer — is one
+                instance of the pattern. Your capstone needs its own roster, shaped by what could
+                actually go wrong in your system.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>What are the genuinely independent tasks in your system — the ones worth a dedicated worker?</li>
+            <li data-ed>What's your guardrail gate, and what threshold does it enforce?</li>
+            <li data-ed>What would your own eval dataset actually contain?</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 22 — CAPSTONE RUBRIC PREVIEW
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Capstone · Part 4</span>
+        <span data-ed>22 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>how it's graded</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>Pass = meets all. Distinction = exceeds.</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>It works:</b> the system reliably does its job, demonstrated live.</li>
+            <li data-ed><b>Architecture judgment:</b> sensible use of context, Skills, MCP, and orchestration/guardrails.</li>
+            <li data-ed><b>Engineering rigor:</b> code is readable, tested, follows good practices.</li>
+            <li data-ed><b>Production thinking:</b> you can articulate your eval strategy, failure modes, and what changes at scale.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Today's content maps directly onto two of these four rows — architecture judgment and production thinking.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 23 — LAB PREVIEW
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Lab · Part 5</span>
+        <span data-ed>23 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>before your own capstone — a guided rep</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>Extend EVBot into a supervised squad.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>No new orchestration code today. Five durable subagent definitions, plus the right prompt
+                to direct Claude Code itself to fan them out — the definitions <i>are</i> the artifact.</p>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Five subagent definitions, one per squad role from Part 1.</li>
+            <li data-ed>You direct Claude Code to fan them out — the same Task/Agent-based pattern Claude Code uses internally.</li>
+            <li data-ed>Output: a real scorecard, checked against a real threshold, on EVBot's actual eval dataset.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 24 — LAB WALKTHROUGH
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Lab · Part 5</span>
+        <span data-ed>24 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-md);">
+        <div>
+            <div class="kicker reveal" data-ed>steps &amp; checkpoints</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>From registering the squad to reading the scorecard.</h2>
+        </div>
+
+        <div class="map-list reveal">
+            <div class="map-item">
+                <span class="map-num" data-ed>Step 1</span>
+                <div class="map-text"><span class="mt" data-ed>Read the five subagent definitions</span><span class="md" data-ed>Understand each worker's one narrow job before you run anything.</span></div>
+            </div>
+            <div class="map-item">
+                <span class="map-num" data-ed>Step 2</span>
+                <div class="map-text"><span class="mt" data-ed>Fan out three workers in parallel</span><span class="md" data-ed>Direct Claude Code to run Accuracy Grader, Groundedness Checker, and Test-Runner concurrently.</span></div>
+            </div>
+            <div class="map-item">
+                <span class="map-num" data-ed>Step 3</span>
+                <div class="map-text"><span class="mt" data-ed>Synthesize the scorecard</span><span class="md" data-ed>Direct the Synthesizer to wait on all three and produce one pass/fail verdict.</span></div>
+            </div>
+            <div class="map-item">
+                <span class="map-num" data-ed>Step 4</span>
+                <div class="map-text"><span class="mt" data-ed>Check it against the threshold</span><span class="md" data-ed>Does the scorecard clear the launch gate — and if not, which worker flagged why?</span></div>
+            </div>
+            <div class="map-item">
+                <span class="map-num" data-ed>Step 5</span>
+                <div class="map-text"><span class="mt" data-ed>Self-audit</span><span class="md" data-ed>Which items on Part 3's production-readiness checklist does your running squad actually satisfy?</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 25 — WHAT JUST HAPPENED
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Lab · Part 5</span>
+        <span data-ed>25 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>why this worked</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>You just ran the fan-out/barrier/synthesize pattern, for real.</h2>
+            <p class="body reveal mt-md maxw" style="font-size:19px;" data-ed>Three independent workers ran concurrently, a barrier step waited for all of them, and
+                synthesis produced one gated verdict — the exact shape from Part 1, now proven against
+                a real system instead of a diagram.</p>
+        </div>
+
+        <p class="lead reveal" data-ed>Everything in your capstone's own squad — whatever roles it needs — will follow this same shape: independent workers, a synchronization point, one gate.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 26 — SHOWCASE & LIVE DEFENSE FORMAT
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Showcase</span>
+        <span data-ed>26 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>the last rep of the course</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>Present it. Defend it. Earn it.</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Demonstrate the working system live — not a slide deck of what it would do.</li>
+            <li data-ed>Explain your architecture, guardrail, and eval choices — and defend them under questions.</li>
+            <li data-ed>Answer: what would change for production at scale?</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Passing all four rubric rows from Part 4 earns "Claude Code Builder" — exceeding them earns distinction.</p>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 27 — APPLY: AUDIT YOUR OWN SYSTEM
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Apply</span>
+        <span data-ed>27 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>before you build</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:46px;" data-ed>Run today's checklist against your own capstone idea.</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Which of your system's actions are irreversible enough to need an approval gate?</li>
+            <li data-ed>What would your own eval dataset actually contain, and where would grounded scenarios come from?</li>
+            <li data-ed>Who signs off on the scorecard before anything ships?</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 28 — COHORT REFLECTION
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Cohort Reflection</span>
+        <span data-ed>28 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <div class="kicker reveal" data-ed>three prompts</div>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>Before we close.</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>What's the riskiest thing your own squad's principal agent could get wrong by delegating too much?</li>
+            <li data-ed>Where in your own work would a "looked right in the demo" system actually need a real eval dataset?</li>
+            <li data-ed>What's the single most important guardrail you'd tell a teammate to add before they ship an agent?</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 29 — RECAP
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Recap</span>
+        <span data-ed>29 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <span class="kicker reveal" data-ed>today in one slide</span>
+            <h2 class="h2 reveal mt-md maxw" style="font-size:44px;" data-ed>What changed today.</h2>
+        </div>
+
+        <ul class="bs-list reveal">
+            <li data-ed>Orchestration means delegating deliberately — not everything needs a squad, but genuinely independent work does.</li>
+            <li data-ed>Guardrails and evaluation aren't separate concerns — they're the two ways you prove a system is safe to ship.</li>
+            <li data-ed>You extended EVBot into a real supervised squad today, not just read about the pattern.</li>
+            <li data-ed>Every capstone piece — Skill, server, orchestration — is now in your hands.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 30 — CLOSE
+     ============================================================ -->
+<section class="slide">
+    <div class="chrome top">
+        <span data-ed>Close</span>
+        <span data-ed>30 — 30</span>
+    </div>
+
+    <div class="slide-body" style="gap:var(--gap-lg);">
+        <div>
+            <span class="kicker reveal" data-ed>closing · the week in one idea</span>
+            <h1 class="display reveal-wipe mt-md" style="font-size:120px;text-transform:none;" data-ed>Trust, verified.</h1>
+        </div>
+
+        <p class="body reveal maxw" style="font-size:19px;" data-ed>A Skill packages a procedure. MCP gives Claude a live reach. Neither one, alone, tells you
+            whether the combined system is safe to put in front of a real user. Orchestration decides
+            who checks what. Guardrails stop the worst outcomes before they happen. Evaluation turns
+            "it looked right" into a number you can defend — the same rigor a real bank chatbot needed
+            before a single customer saw it.</p>
+
+        <ul class="bs-list reveal">
+            <li data-ed><b>Delegate deliberately, not by default.</b> A squad earns its overhead when the work is genuinely independent — the fan-out/barrier/synthesize shape you just ran on EVBot.</li>
+            <li data-ed><b>A gate is only real if it can say no.</b> Permissions, approval steps, and a launch threshold — enforced, not suggested.</li>
+            <li data-ed><b>You now have all three capstone pieces in hand.</b> A Skill from Week 3, a server from Week 4, and orchestration, guardrails, and eval from today.</li>
+        </ul>
+
+        <p class="lead reveal" data-ed>Grounding solved what Claude knows. Skills solved what it does. MCP solved what it can reach. This week solved what you can actually trust — go build the capstone.</p>
+    </div>
+</section>
+
+</main>
+</div>
+
+<!-- Presentation chrome (outside the scaled stage) -->
+<div class="deck-counter"><span class="cur" id="curNum">01</span> / <span id="totNum">30</span></div>
+<nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+<!-- Inline editing affordance -->
+<div class="edit-hotzone" aria-hidden="true"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">✎</button>
+<div class="edit-hint">EDIT MODE · click any text · Ctrl+S saves · ⤓ exports</div>
+
+<script>
+/* ===========================================================
+   SLIDE CONTROLLER
+   =========================================================== */
+class SlidePresentation{
+    constructor(){
+        this.stage=document.getElementById('deckStage');
+        this.slides=[...document.querySelectorAll('.slide')];
+        this.current=0;
+        this.buildDots();
+        this.setupStageScale();
+        this.setupNav();
+        this.show(0);
+    }
+    setupStageScale(){
+        const scale=()=>{
+            const f=Math.min(window.innerWidth/1920,window.innerHeight/1080);
+            const x=(window.innerWidth-1920*f)/2;
+            const y=(window.innerHeight-1080*f)/2;
+            this.stage.style.transform=`translate(${x}px,${y}px) scale(${f})`;
+        };
+        scale();
+        window.addEventListener('resize',scale);
+    }
+    buildDots(){
+        const wrap=document.getElementById('navDots');
+        this.slides.forEach((_,i)=>{
+            const b=document.createElement('button');
+            b.setAttribute('aria-label','Go to slide '+(i+1));
+            b.addEventListener('click',()=>this.show(i));
+            wrap.appendChild(b);
+        });
+        this.dots=[...wrap.children];
+        document.getElementById('totNum').textContent=String(this.slides.length).padStart(2,'0');
+    }
+    setupNav(){
+        document.addEventListener('keydown',e=>{
+            if(e.target.getAttribute&&e.target.getAttribute('contenteditable')==='true')return;
+            if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();this.next();}
+            else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.prev();}
+            else if(e.key==='Home'){this.show(0);}
+            else if(e.key==='End'){this.show(this.slides.length-1);}
+        });
+        let wheelLock=false;
+        window.addEventListener('wheel',e=>{
+            if(document.body.classList.contains('editing'))return;
+            if(wheelLock)return;
+            if(Math.abs(e.deltaY)<24)return;
+            wheelLock=true;setTimeout(()=>wheelLock=false,700);
+            e.deltaY>0?this.next():this.prev();
+        },{passive:true});
+        let sx=0,sy=0;
+        window.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+        window.addEventListener('touchend',e=>{
+            const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+            if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){dx<0?this.next():this.prev();}
+        },{passive:true});
+    }
+    show(i){
+        this.current=Math.max(0,Math.min(i,this.slides.length-1));
+        this.slides.forEach((s,n)=>{
+            s.classList.toggle('active',n===this.current);
+            s.classList.toggle('visible',n===this.current);
+        });
+        this.dots.forEach((d,n)=>d.classList.toggle('on',n===this.current));
+        document.getElementById('curNum').textContent=String(this.current+1).padStart(2,'0');
+    }
+    next(){this.show(this.current+1);}
+    prev(){this.show(this.current-1);}
+}
+
+/* ===========================================================
+   INLINE EDITOR
+   =========================================================== */
+class Editor{
+    constructor(){
+        this.isActive=false;
+        this.els=[...document.querySelectorAll('[data-ed]')];
+        this.restore();
+        this.wire();
+    }
+    key(){return 'broadside-deck-week5::'+location.pathname;}
+    restore(){
+        try{
+            const saved=JSON.parse(localStorage.getItem(this.key())||'null');
+            if(saved&&Array.isArray(saved)&&saved.length===this.els.length){
+                this.els.forEach((el,i)=>{if(saved[i]!=null)el.innerHTML=saved[i];});
+            }
+        }catch(_){}
+    }
+    save(){
+        try{localStorage.setItem(this.key(),JSON.stringify(this.els.map(el=>el.innerHTML)));}catch(_){}
+    }
+    toggleEditMode(){
+        this.isActive=!this.isActive;
+        document.body.classList.toggle('editing',this.isActive);
+        document.getElementById('editToggle').classList.toggle('active',this.isActive);
+        this.els.forEach(el=>{
+            el.setAttribute('contenteditable',this.isActive?'true':'false');
+            if(this.isActive){el.addEventListener('input',this._oninput);}
+        });
+    }
+    _oninput=()=>this.save();
+    export(){
+        const clone=document.documentElement.cloneNode(true);
+        clone.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+        clone.querySelectorAll('.edit-hotzone,.edit-toggle,.edit-hint').forEach(n=>n.remove());
+        const html='<!DOCTYPE html>\n'+clone.outerHTML;
+        const blob=new Blob([html],{type:'text/html'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='week5-orchestration-broadside.html';
+        a.click();
+    }
+    wire(){
+        const toggle=document.getElementById('editToggle');
+        const hotzone=document.querySelector('.edit-hotzone');
+        let hideTimeout=null;
+        toggle.addEventListener('click',()=>this.toggleEditMode());
+        hotzone.addEventListener('mouseenter',()=>{clearTimeout(hideTimeout);toggle.classList.add('show');});
+        hotzone.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        toggle.addEventListener('mouseenter',()=>clearTimeout(hideTimeout));
+        toggle.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!this.isActive)toggle.classList.remove('show');},400);});
+        hotzone.addEventListener('click',()=>this.toggleEditMode());
+        document.addEventListener('keydown',e=>{
+            if((e.key==='e'||e.key==='E')&&e.target.getAttribute&&e.target.getAttribute('contenteditable')!=='true'){this.toggleEditMode();}
+            if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();this.save();this.flash('saved');}
+            if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='e'&&this.isActive){e.preventDefault();this.export();}
+        });
+    }
+    flash(msg){
+        const hint=document.querySelector('.edit-hint');
+        if(!hint)return;const prev=hint.textContent;hint.textContent=msg.toUpperCase();
+        setTimeout(()=>hint.textContent=prev,1000);
+    }
+}
+
+const deck=new SlidePresentation();
+const editor=new Editor();
+</script>
+</body>
+</html>
