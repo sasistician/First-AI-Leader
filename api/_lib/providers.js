@@ -7,9 +7,15 @@ export const CHAT_MODEL = process.env.CHAT_MODEL || 'openai/gpt-oss-120b'
 export const STT_MODEL = process.env.STT_MODEL || 'whisper-large-v3-turbo'
 const STT_PROMPT = 'The AI-First Leader, The AI-First Engineer, Claude Code, MCP, Skills, sub-agents, orchestration, guardrails, EVBot, Bilal Farooq.'
 
+// Forgive common paste slips in the dashboard: surrounding quotes, whitespace, a "GROQ_API_KEY=" prefix.
+export function cleanKey(value) {
+  return String(value || '').trim().replace(/^GROQ_API_KEY\s*=\s*/, '').replace(/^["']|["']$/g, '').trim()
+}
+
 export function getProvider(env = process.env) {
-  const mode = env.PROVIDER || (env.GROQ_API_KEY ? 'groq' : 'mock')
-  return mode === 'groq' ? groq(env.GROQ_API_KEY) : mock()
+  const key = cleanKey(env.GROQ_API_KEY)
+  const mode = env.PROVIDER || (key ? 'groq' : 'mock')
+  return mode === 'groq' ? groq(key) : mock()
 }
 
 async function groqFetch(key, path, init, attempt = 0) {

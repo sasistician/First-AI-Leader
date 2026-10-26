@@ -6,7 +6,7 @@ import { route } from '../api/_lib/router.js'
 import { classify, checkReply } from '../api/_lib/policy.js'
 import { search, pinnedFacts } from '../api/_lib/kb.js'
 import { runTurn } from '../api/_lib/agent.js'
-import { getProvider } from '../api/_lib/providers.js'
+import { getProvider, cleanKey } from '../api/_lib/providers.js'
 import { take, resetLimits } from '../api/_lib/ratelimit.js'
 
 const mock = getProvider({ PROVIDER: 'mock' })
@@ -105,6 +105,14 @@ test('agent turn: an unsafe model reply is replaced', async () => {
   const r = await runTurn({ text: 'What do we cover in week 4?', state: {}, provider: leaky })
   assert.equal(r.policy, 'blocked_reply')
   assert.doesNotMatch(r.reply, /\$/)
+})
+
+test('API keys pasted with quotes, spaces or a name prefix still work', () => {
+  assert.equal(cleanKey('  gsk_abc  '), 'gsk_abc')
+  assert.equal(cleanKey('"gsk_abc"'), 'gsk_abc')
+  assert.equal(cleanKey('GROQ_API_KEY=gsk_abc\n'), 'gsk_abc')
+  assert.equal(cleanKey(undefined), '')
+  assert.equal(getProvider({ GROQ_API_KEY: '   ' }).name, 'mock', 'a blank key means mock mode')
 })
 
 test('rate limit: 20 turns per 10 minutes per visitor', () => {

@@ -78,6 +78,8 @@ export async function POST(request) {
   } catch (e) {
     console.error(JSON.stringify({ event: 'voice_turn_error', status: e.status, message: String(e.message).slice(0, 200) }))
     const busy = e.status === 429
-    return json({ ok: false, error: busy ? 'provider_busy' : 'provider_error', message: busy ? 'The voice guide is very busy right now. Please try again in a minute.' : 'Something went wrong answering that. Please try again.' }, busy ? 503 : 502)
+    // A failure category (never the key or the provider's message) so a misconfiguration can be diagnosed.
+    const detail = e.status === 401 || e.status === 403 ? 'auth' : busy ? 'rate_limit' : e.status === 400 || e.status === 404 ? 'request' : e.status ? `http_${e.status}` : 'network'
+    return json({ ok: false, error: busy ? 'provider_busy' : 'provider_error', detail, message: busy ? 'The voice guide is very busy right now. Please try again in a minute.' : 'Something went wrong answering that. Please try again.' }, busy ? 503 : 502)
   }
 }
