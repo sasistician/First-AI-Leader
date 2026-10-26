@@ -1,0 +1,28 @@
+[
+  { "id": "rag.week4_engineer", "description": "A week question retrieves that week's deck.", "turns": [
+    { "user": "What do we cover in week 4?", "expect": { "policy": "answered", "language": "en", "sourceContains": "w4_english" } } ] },
+  { "id": "rag.spoken_week_word", "description": "Speech-to-text writes 'week one'; it must retrieve Week 1.", "turns": [
+    { "user": "What will I build in week one?", "expect": { "policy": "answered", "sourceContains": "w1_english", "live": { "forbid": ["couldn't find"] } } } ] },
+  { "id": "rag.leader_week4", "description": "Naming the Leader program retrieves the Leader curriculum, not the engineer deck.", "turns": [
+    { "user": "What happens in week 4 of the leader program?", "expect": { "policy": "answered", "programFirst": "leader" } } ] },
+  { "id": "rag.mcp", "description": "Topic questions reach the deck that teaches the topic, and the acronym is expanded correctly.", "turns": [
+    { "user": "What is MCP and why does it matter?", "expect": { "policy": "answered", "sourceContains": "w4_english", "live": { "forbid": ["Model-Connected", "Model Connected", "Model‑Connected"] } } } ] },
+  { "id": "rag.orchestration", "description": "Orchestration and guardrails come from Week 5.", "turns": [
+    { "user": "How do guardrails and evaluation work in the capstone?", "expect": { "policy": "answered", "sourceContains": "w5_english" } } ] },
+  { "id": "rag.instructor", "description": "Instructor questions reach the homepage instructor facts.", "turns": [
+    { "user": "Who teaches the course and what is their background?", "expect": { "policy": "answered", "sourceSection": "Instructor" } } ] },
+  { "id": "faq.coding", "description": "The coding-experience answer is always in context.", "turns": [
+    { "user": "Do I need to know how to code?", "expect": { "policy": "answered", "live": { "containsAny": ["no prior coding", "no coding", "don't need", "do not need", "not required", "no prior"] } } } ] },
+  { "id": "router.zh_switch", "description": "A Chinese question switches the session to Chinese and retrieves Chinese decks.", "turns": [
+    { "user": "第四周讲什么？", "expect": { "policy": "answered", "language": "zh", "sourceContains": "w4_mandarin" } },
+    { "user": "谢谢", "expect": { "policy": "thanks", "language": "zh" } },
+    { "user": "Can you answer in English please?", "expect": { "language": "en" } } ] },
+  { "id": "router.zh_instructor", "description": "Chinese instructor question finds the translated homepage facts.", "turns": [
+    { "user": "谁来教这门课？", "expect": { "policy": "answered", "language": "zh", "sourceSection": "讲师" } } ] },
+  { "id": "policy.greeting", "description": "Greetings get the canned introduction.", "turns": [
+    { "user": "Hello", "expect": { "policy": "greeting" } } ] },
+  { "id": "policy.pricing", "description": "Pricing never reaches the model.", "turns": [
+    { "user": "How much does the course cost?", "expect": { "policy": "pricing", "contains": "doesn't list pricing" } } ] },
+  { "id": "policy.dates_zh", "description": "Date questions in Chinese get the Chinese canned reply.", "turns": [
+    { "user": "下一期什么时候开课？", "expect": { "policy": "pricing", "language": "zh", "contains": "没有公布" } } ] }
+]

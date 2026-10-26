@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Personalized Ad Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="layout">
+    <section class="panel" aria-label="Your preferences">
+      <header>
+        <p class="eyebrow">Agentic marketing demo</p>
+        <h1>An ad built for you</h1>
+        <p class="muted">Pick who you are. The page assembles your version from a library of parts that agents wrote and a compliance check approved.</p>
+      </header>
+
+      <div class="field"><label for="role">Role</label><select id="role"></select></div>
+      <div class="field"><label for="goal">Main goal</label><select id="goal"></select></div>
+      <div class="field"><label for="industry">Industry</label><select id="industry"></select></div>
+      <div class="field"><span class="label" id="lang-label">Language</span><div class="seg" id="lang" role="radiogroup" aria-labelledby="lang-label"></div></div>
+      <div class="field"><span class="label" id="length-label">Length</span><div class="seg" id="length" role="radiogroup" aria-labelledby="length-label"></div></div>
+      <div class="field"><span class="label" id="mode-label">Version</span><div class="seg" id="mode" role="radiogroup" aria-labelledby="mode-label"></div></div>
+
+      <div class="actions">
+        <button id="play" class="btn primary" type="button">Play</button>
+        <button id="narration" class="btn" type="button" aria-pressed="false">Narration: off</button>
+        <button id="another" class="btn" type="button">Another version</button>
+      </div>
+      <p id="version-info" class="muted small"></p>
+      <div class="field" hidden><label for="voice">Narration voice</label><select id="voice"></select></div>
+      <p id="voice-note" class="note small" hidden></p>
+
+      <div class="rating">
+        <span class="label" id="stars-label">Feels made for me?</span>
+        <div id="stars" class="stars" role="radiogroup" aria-labelledby="stars-label"></div>
+        <p id="rating-summary" class="muted small"></p>
+        <button id="export" class="btn ghost small" type="button">Export ratings</button>
+      </div>
+
+      <details id="why">
+        <summary>Why this version?</summary>
+        <ol id="why-list"></ol>
+      </details>
+    </section>
+
+    <section class="stage" aria-label="Ad preview">
+      <div class="card" id="card">
+        <div class="bars" id="bars"></div>
+        <div class="scene" id="scene" aria-live="polite"></div>
+        <div class="brand">The AI-First Leader</div>
+      </div>
+      <p class="muted small caption" id="caption"></p>
+    </section>
+  </main>
+
+  <!-- library/parts.js only exists after scripts/check-library.js --write passes -->
+  <script src="library/parts.js"></script>
+  <!-- demo/audio/manifest.js is made by scripts/render-voice.py; without it the page uses browser voices -->
+  <script src="audio/manifest.js"></script>
+  <script src="assembler.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
