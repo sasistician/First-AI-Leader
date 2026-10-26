@@ -39,6 +39,9 @@ export default function Nav() {
           >
             Instructor
           </button>
+          <Link to="/agentic" className="text-white/80 hover:text-white transition-colors text-sm font-medium">
+            Live demo
+          </Link>
         </div>
 
         <Link

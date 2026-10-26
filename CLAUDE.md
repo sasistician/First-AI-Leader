@@ -30,10 +30,18 @@ src/
 │   ├── WhySection.tsx      #why — chat-vs-direct before/after contrast cards
 │   ├── InstructorSection.tsx #instructor — instructor bio with headshot photo
 │   └── Footer.tsx           social icons: GitHub, email, LinkedIn
+│   └── VoiceAgent.tsx       course voice guide UI (mic, transcript, sources, timings)
+├── lib/voice.ts      mic turn detection + WAV encoding + browser TTS
 ├── pages/
 │   ├── Home.tsx     composes all homepage sections
-│   └── Register.tsx  /register — student registration form, posts to Formspree
+│   ├── Register.tsx  /register — student registration form, posts to Formspree
+│   └── Agentic.tsx   /agentic — personalized ad + voice guide
 └── index.css         liquid-glass design system + Instrument Serif import
+
+api/                  Vercel functions: voice-agent.js + _lib/ (agent, kb, policy, router, providers, ratelimit) + _data/kb.js
+kb/                   knowledge-base allowlist (sources.json) and homepage facts
+scripts/              build-kb.mjs, dev-api.mjs
+tests/, evals/        unit tests and Aurora-style eval suites
 
 public/
 ├── images/
@@ -71,6 +79,40 @@ Headings use the "Instrument Serif" Google Font (imported in `index.css`), appli
    `docs/style-reference/ai-first-leader-broadside-sample1.html`)
 2. In `src/components/WeeksSection.tsx`, add `N` to `AVAILABLE_ENGLISH` and/or
    `AVAILABLE_MANDARIN` so that language's link becomes live instead of greyed out
+3. Add the deck to `kb/sources.json` and run `npm run kb` so the voice guide knows it
+
+## /agentic: personalized ad + course voice guide
+
+The page `src/pages/Agentic.tsx` (linked as "Live demo" in the nav) has two parts:
+
+1. **Personalized ad** in an iframe: `public/agentic-ad/` is an export of the ad demo built in
+   `../agentic-marketing` (`scripts/export-to-site.sh` there). Don't edit it here; re-export. It reports its
+   height to the page via `postMessage` (`?embed=1`).
+2. **Voice guide** (`src/components/VoiceAgent.tsx`, `src/lib/voice.ts`): a RAG voice agent over the course,
+   modelled on the Aurora workshop agent (hamzafarooq/multi-agent-course, Assignment 2), without LiveKit.
+
+**Pipeline:** the browser detects end-of-turn (adaptive noise floor, pre-roll, barge-in) and posts 16 kHz
+WAV to `api/voice-agent.js` (Vercel function). That runs Groq Whisper STT, then the language router
+(EN/中文), then deterministic guardrails (`api/_lib/policy.js`: prices/dates, injection, greetings), then BM25
+retrieval (`api/_lib/kb.js`), then Groq `openai/gpt-oss-120b`, then a reply check. The browser speaks the
+reply with its own voice (free).
+
+- **Knowledge base:** `kb/sources.json` is an **allowlist**; only those files are indexed. `npm run kb`
+  writes `api/_data/kb.js`; commit it. `kb/site-facts.md` (+ `.zh.md`) holds verbatim homepage copy. Week
+  decks and lab guides belong to the sibling program **The AI-First Engineer**; the overview and homepage
+  facts are **The AI-First Leader**. Never add personal files, `.env`s, databases or internal planning
+  docs (e.g. `syllabus.md`).
+- **Keys:** `GROQ_API_KEY` is set in Vercel's environment variables (Preview + Production), or in
+  `.env.local` for local dev (git-ignored). Without it the API runs in **mock mode** (typed questions
+  only; answers quote the best excerpt).
+- **Local dev:** `npm run dev:api` (port 3001) plus `npm run dev` (Vite proxies `/api`).
+- **Tests:** `npm run test:agent` (unit) and `npm run evals` (Aurora-style core and red-team suites, mock,
+  no cost). `GROQ_API_KEY=... npm run evals -- --live` adds model checks. Add an eval case before changing
+  the prompt, guardrails or retrieval.
+- **Limits:** Groq free tier allows 8,000 tokens/minute and 1,000 requests/day for all visitors combined
+  (about 1,300 tokens per turn). Per-visitor limits in `api/_lib/ratelimit.js` are in-memory, best effort.
+- **Routing:** `vercel.json` sends every non-`/api` path to `index.html`, so `/agentic` and `/register`
+  work as direct links.
 
 ## Known placeholders to revisit
 

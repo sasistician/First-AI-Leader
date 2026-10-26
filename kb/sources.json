@@ -1,0 +1,205 @@
+{
+  "note": "Allowlist for the course voice agent's knowledge base. Only these files are read. 'site:' paths are in this repo's public/ folder (and get a link); 'repo:' paths are in this repo; 'course:' paths are in COURSE_CONTENT_DIR (default ../course_content). Never add personal documents, .env files, databases or code. The week decks and lab guides belong to the sibling program The AI-First Engineer (for software engineers); the program overview and ai-first-for-organisations belong to The AI-First Leader. Internal planning docs (e.g. syllabus.md) are excluded.",
+  "sources": [
+    {
+      "id": "site-facts",
+      "program": "leader",
+      "path": "repo:kb/site-facts.md",
+      "url": "/",
+      "title": "The AI-First Leader · Homepage",
+      "lang": "en"
+    },
+    {
+      "id": "site-facts-zh",
+      "program": "leader",
+      "path": "repo:kb/site-facts.zh.md",
+      "url": "/",
+      "title": "The AI-First Leader · 首页（中文译文）",
+      "lang": "zh"
+    },
+    {
+      "id": "overview-en",
+      "program": "leader",
+      "path": "site:program-overview_english.html",
+      "url": "/program-overview_english.html",
+      "title": "The AI-First Leader · Program overview",
+      "lang": "en"
+    },
+    {
+      "id": "overview-zh",
+      "program": "leader",
+      "path": "site:program-overview_mandarin.html",
+      "url": "/program-overview_mandarin.html",
+      "title": "The AI-First Leader · 课程概览",
+      "lang": "zh"
+    },
+    {
+      "id": "w0-en",
+      "program": "engineer",
+      "path": "site:weeks/w0_english.html",
+      "url": "/weeks/w0_english.html",
+      "title": "AI-First Engineer · Week 0 · Foundations",
+      "lang": "en"
+    },
+    {
+      "id": "w0-zh",
+      "program": "engineer",
+      "path": "site:weeks/w0_mandarin.html",
+      "url": "/weeks/w0_mandarin.html",
+      "title": "AI-First Engineer · 第 0 周 · 基础",
+      "lang": "zh"
+    },
+    {
+      "id": "w1-en",
+      "program": "engineer",
+      "path": "site:weeks/w1_english.html",
+      "url": "/weeks/w1_english.html",
+      "title": "AI-First Engineer · Week 1 · Claude Code fundamentals",
+      "lang": "en"
+    },
+    {
+      "id": "w1-zh",
+      "program": "engineer",
+      "path": "site:weeks/w1_mandarin.html",
+      "url": "/weeks/w1_mandarin.html",
+      "title": "AI-First Engineer · 第 1 周 · Claude Code 基础",
+      "lang": "zh"
+    },
+    {
+      "id": "w2-en",
+      "program": "engineer",
+      "path": "site:weeks/w2_english.html",
+      "url": "/weeks/w2_english.html",
+      "title": "AI-First Engineer · Week 2 · Context engineering",
+      "lang": "en"
+    },
+    {
+      "id": "w2-zh",
+      "program": "engineer",
+      "path": "site:weeks/w2_mandarin.html",
+      "url": "/weeks/w2_mandarin.html",
+      "title": "AI-First Engineer · 第 2 周 · 上下文工程",
+      "lang": "zh"
+    },
+    {
+      "id": "w3-en",
+      "program": "engineer",
+      "path": "site:weeks/w3_english.html",
+      "url": "/weeks/w3_english.html",
+      "title": "AI-First Engineer · Week 3 · Skills",
+      "lang": "en"
+    },
+    {
+      "id": "w3-zh",
+      "program": "engineer",
+      "path": "site:weeks/w3_mandarin.html",
+      "url": "/weeks/w3_mandarin.html",
+      "title": "AI-First Engineer · 第 3 周 · Skills",
+      "lang": "zh"
+    },
+    {
+      "id": "w3lab-en",
+      "program": "engineer",
+      "path": "site:weeks/w3_lab_english.html",
+      "url": "/weeks/w3_lab_english.html",
+      "title": "AI-First Engineer · Week 3 · Lab deep dive",
+      "lang": "en"
+    },
+    {
+      "id": "w3lab-zh",
+      "program": "engineer",
+      "path": "site:weeks/w3_lab_mandarin.html",
+      "url": "/weeks/w3_lab_mandarin.html",
+      "title": "AI-First Engineer · 第 3 周 · 实验深入",
+      "lang": "zh"
+    },
+    {
+      "id": "w4-en",
+      "program": "engineer",
+      "path": "site:weeks/w4_english.html",
+      "url": "/weeks/w4_english.html",
+      "title": "AI-First Engineer · Week 4 · MCP",
+      "lang": "en"
+    },
+    {
+      "id": "w4-zh",
+      "program": "engineer",
+      "path": "site:weeks/w4_mandarin.html",
+      "url": "/weeks/w4_mandarin.html",
+      "title": "AI-First Engineer · 第 4 周 · MCP",
+      "lang": "zh"
+    },
+    {
+      "id": "w5-en",
+      "program": "engineer",
+      "path": "site:weeks/w5_english.html",
+      "url": "/weeks/w5_english.html",
+      "title": "AI-First Engineer · Week 5 · Orchestration, guardrails & evaluation",
+      "lang": "en"
+    },
+    {
+      "id": "w5-zh",
+      "program": "engineer",
+      "path": "site:weeks/w5_mandarin.html",
+      "url": "/weeks/w5_mandarin.html",
+      "title": "AI-First Engineer · 第 5 周 · 编排、护栏与评估",
+      "lang": "zh"
+    },
+    {
+      "id": "lab1",
+      "program": "engineer",
+      "path": "course:softwareEngineersCourse/week1-lab-guide.md",
+      "url": null,
+      "title": "AI-First Engineer · Week 1 lab guide",
+      "lang": "en"
+    },
+    {
+      "id": "lab2",
+      "program": "engineer",
+      "path": "course:softwareEngineersCourse/week2-lab-guide.md",
+      "url": null,
+      "title": "AI-First Engineer · Week 2 lab guide",
+      "lang": "en"
+    },
+    {
+      "id": "lab3",
+      "program": "engineer",
+      "path": "course:softwareEngineersCourse/week3-lab-guide.md",
+      "url": null,
+      "title": "AI-First Engineer · Week 3 lab guide",
+      "lang": "en"
+    },
+    {
+      "id": "lab4",
+      "program": "engineer",
+      "path": "course:softwareEngineersCourse/week4-lab-guide.md",
+      "url": null,
+      "title": "AI-First Engineer · Week 4 lab guide",
+      "lang": "en"
+    },
+    {
+      "id": "lab5",
+      "program": "engineer",
+      "path": "course:softwareEngineersCourse/week5-lab-guide.md",
+      "url": null,
+      "title": "AI-First Engineer · Week 5 lab guide",
+      "lang": "en"
+    },
+    {
+      "id": "lab5-zh",
+      "program": "engineer",
+      "path": "course:softwareEngineersCourse/week5-lab-guide.zh.md",
+      "url": null,
+      "title": "AI-First Engineer · 第 5 周实验指南",
+      "lang": "zh"
+    },
+    {
+      "id": "ai-first-orgs",
+      "program": "leader",
+      "path": "course:short-intro/ai-first-for-organisations.html",
+      "url": null,
+      "title": "AI-first for organisations",
+      "lang": "en"
+    }
+  ]
+}
