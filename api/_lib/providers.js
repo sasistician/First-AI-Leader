@@ -18,14 +18,14 @@ export function getProvider(env = process.env) {
   return mode === 'groq' ? groq(key) : mock()
 }
 
-async function groqFetch(key, path, init, attempt = 0) {
+async function groqFetch(key, path, init, attempt = 0, as = 'json') {
   const res = await fetch(`${GROQ}${path}`, { ...init, headers: { Authorization: `Bearer ${key}`, ...(init.headers || {}) } })
   // The free tier's per-minute token limit usually clears within a second or two: wait once.
   if (res.status === 429 && attempt < 2) {
     const wait = Number(res.headers.get('retry-after') || 0)
     if (wait > 0 && wait <= 3) {
       await new Promise((r) => setTimeout(r, wait * 1000 + 100))
-      return groqFetch(key, path, init, attempt + 1)
+      return groqFetch(key, path, init, attempt + 1, as)
     }
   }
   if (!res.ok) {
@@ -34,7 +34,17 @@ async function groqFetch(key, path, init, attempt = 0) {
     err.status = res.status
     throw err
   }
-  return res.json()
+  return as === 'buffer' ? Buffer.from(await res.arrayBuffer()) : res.json()
+}
+
+// Text-to-speech settings, read per call so Vercel env changes apply on the next deployment.
+// TTS_BACKEND=provider speaks English replies with Groq Orpheus; =system leaves it to the browser.
+export function ttsConfig(env = process.env) {
+  return {
+    backend: (env.TTS_BACKEND || 'provider').toLowerCase(),
+    model: env.TTS_MODEL || 'canopylabs/orpheus-v1-english',
+    voice: env.TTS_VOICE || 'troy',
+  }
 }
 
 function groq(key) {
@@ -58,6 +68,14 @@ function groq(key) {
         body: JSON.stringify(body),
       })
       return (j.choices?.[0]?.message?.content || '').trim()
+    },
+    // Groq Orpheus: English only, WAV output, at most 200 characters per request (see tts.js).
+    async speak(text, { model, voice } = ttsConfig()) {
+      return groqFetch(key, '/audio/speech', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, voice, input: text, response_format: 'wav' }),
+      }, 0, 'buffer')
     },
   }
 }

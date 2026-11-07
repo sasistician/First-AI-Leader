@@ -113,6 +113,15 @@ reply with its own voice (free).
   (about 1,300 tokens per turn). Per-visitor limits in `api/_lib/ratelimit.js` are in-memory, best effort.
 - **Routing:** `vercel.json` sends every non-`/api` path to `index.html`, so `/agentic` and `/register`
   work as direct links.
+- **Spoken replies (Aurora's `TTS_BACKEND`):** with `TTS_BACKEND=provider` (the default), English replies are
+  synthesized by Groq Orpheus (`api/_lib/tts.js`). The voice is `TTS_VOICE`, default `troy`; other voices are
+  autumn, diana, hannah, austin and daniel. Replies are split into ≤200-character requests and returned as base64 WAV.
+  Chinese replies, `TTS_BACKEND=system`, or any TTS failure (e.g. quota) fall back to the browser's voice;
+  `ttsDetail` in the response says why. Groq's free tier allows only ~3,600 Orpheus tokens/day; the Developer
+  tier is $22 per 1M characters (~$3.30 per 1,000 answers).
+- **Home page widget:** `src/components/AskAIWidget.tsx` adds a floating glass "Talk to AI" button (top right)
+  that opens `VoiceAgent` in `compact` mode. `/?talk=1` opens it directly. Closing it unmounts the agent,
+  which stops the mic.
 
 ## Known placeholders to revisit
 

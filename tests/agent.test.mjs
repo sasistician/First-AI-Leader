@@ -8,6 +8,7 @@ import { search, pinnedFacts } from '../api/_lib/kb.js'
 import { runTurn } from '../api/_lib/agent.js'
 import { getProvider, cleanKey } from '../api/_lib/providers.js'
 import { take, resetLimits } from '../api/_lib/ratelimit.js'
+import { splitForTts, synthesize } from '../api/_lib/tts.js'
 
 const mock = getProvider({ PROVIDER: 'mock' })
 
@@ -113,6 +114,37 @@ test('API keys pasted with quotes, spaces or a name prefix still work', () => {
   assert.equal(cleanKey('GROQ_API_KEY=gsk_abc\n'), 'gsk_abc')
   assert.equal(cleanKey(undefined), '')
   assert.equal(getProvider({ GROQ_API_KEY: '   ' }).name, 'mock', 'a blank key means mock mode')
+})
+
+test('replies are split into Orpheus-sized pieces (≤ 200 chars) without losing words', () => {
+  const short = 'You don’t need to code. The program requires no prior coding experience.'
+  assert.deepEqual(splitForTts(short), [short], 'short replies stay one request')
+  const long = 'In Week 4 of The AI-First Engineer you build and connect a live web-search MCP server, add a second tool, run tests, and reflect on security, tool changes and mitigation checklists, which is the highest-risk lab in the course. It matters because it replaces bespoke integrations with one protocol.'
+  const chunks = splitForTts(long)
+  assert.ok(chunks.length >= 2)
+  assert.ok(chunks.every((c) => c.length <= 200), chunks.map((c) => c.length).join(','))
+  assert.equal(chunks.join(' ').replace(/\s+/g, ' '), long.replace(/\s+/g, ' '))
+  assert.deepEqual(splitForTts(''), [])
+})
+
+test('speech: English via the provider, Chinese and system mode left to the browser, failures never break the turn', async () => {
+  const calls = []
+  const voiced = { name: 'groq', speak: async (t, cfg) => { calls.push([t, cfg.voice]); return Buffer.from('RIFFfake') } }
+  const en = await synthesize(voiced, 'Week 4 covers MCP.', 'en', {})
+  assert.equal(en.audio.voice, 'troy', 'Aurora’s default voice')
+  assert.equal(en.audio.segments.length, 1)
+  assert.equal(Buffer.from(en.audio.segments[0], 'base64').toString(), 'RIFFfake')
+  assert.deepEqual(calls[0], ['Week 4 covers MCP.', 'troy'])
+
+  assert.equal((await synthesize(voiced, '第四周讲 MCP。', 'zh', {})).detail, 'language')
+  assert.equal((await synthesize(voiced, 'Hello', 'en', { TTS_BACKEND: 'system' })).detail, 'system')
+  assert.equal((await synthesize(voiced, 'Hello', 'en', { TTS_VOICE: 'hannah' })).audio.voice, 'hannah')
+  assert.equal((await synthesize({ name: 'mock' }, 'Hello', 'en', {})).detail, 'unsupported')
+
+  const quota = { name: 'groq', speak: async () => { const e = new Error('429'); e.status = 429; throw e } }
+  const r = await synthesize(quota, 'Hello there.', 'en', {})
+  assert.equal(r.audio, null)
+  assert.equal(r.detail, 'rate_limit')
 })
 
 test('rate limit: 20 turns per 10 minutes per visitor', () => {

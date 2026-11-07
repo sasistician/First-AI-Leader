@@ -7,6 +7,7 @@ import WhySection from '../components/WhySection'
 import TestimonialsSection from '../components/TestimonialsSection'
 import InstructorSection from '../components/InstructorSection'
 import Footer from '../components/Footer'
+import AskAIWidget from '../components/AskAIWidget'
 
 export default function Home() {
   return (
@@ -20,6 +21,7 @@ export default function Home() {
       <TestimonialsSection />
       <InstructorSection />
       <Footer />
+      <AskAIWidget />
     </div>
   )
 }
