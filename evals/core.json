@@ -13,6 +13,8 @@
     { "user": "Who teaches the course and what is their background?", "expect": { "policy": "answered", "sourceSection": "Instructor" } } ] },
   { "id": "faq.coding", "description": "The coding-experience answer is always in context.", "turns": [
     { "user": "Do I need to know how to code?", "expect": { "policy": "answered", "live": { "containsAny": ["no prior coding", "no coding", "don't need", "do not need", "not required", "no prior"] } } } ] },
+  { "id": "faq.coding_both_programs", "description": "The coding answer must not claim neither program involves code: the Engineer program is for software engineers.", "turns": [
+    { "user": "Do I need to know how to code?", "expect": { "policy": "answered", "live": { "forbid": ["either program", "neither program", "both programs require no", "for both programs"] } } } ] },
   { "id": "router.zh_switch", "description": "A Chinese question switches the session to Chinese and retrieves Chinese decks.", "turns": [
     { "user": "第四周讲什么？", "expect": { "policy": "answered", "language": "zh", "sourceContains": "w4_mandarin" } },
     { "user": "谢谢", "expect": { "policy": "thanks", "language": "zh" } },

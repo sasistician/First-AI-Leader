@@ -26,6 +26,8 @@ The AI-First Leader 是一门为期五周、基于 Claude Code 的直播小班�
 
 网站上的第 0 至第 5 周课程讲义来自姊妹课程 The AI-First Engineer，这是一门面向软件工程师的 Claude Code 构建者课程，涵盖基础、Claude Code 基础、上下文工程、Skills、MCP，以及编排、护栏与评估。讲义提供英文和中文版本。
 
+关于编程：The AI-First Leader 无需任何编程经验。The AI-First Engineer 面向软件工程师：实验在终端中基于 Python 代码仓库进行（git、uv、pytest），不过学员主要是指挥 Claude Code 编写大部分代码，而不是全部手写。
+
 ## 讲师
 
 课程由 Bilal Farooq 讲授。他是一位资深 AI 专业人士，拥有 20 多年在澳大利亚、新西兰、马来西亚、阿联酋、美国和巴基斯坦的电信、银行、零售和咨询企业的从业经验。他在组建和培养高绩效数据科学团队方面有丰富经验，并担任一家旧金山初创公司的生成式 AI / 智能体 AI 顾问。他曾为从六年级到博士阶段的学生设计数据科学课程，并有丰富的数据科学、生成式 AI 和智能体 AI 教学经验。

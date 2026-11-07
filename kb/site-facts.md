@@ -28,6 +28,8 @@ Five weeks to go from AI user to AI leader, and drive AI transformation across y
 
 The session decks on this site (Week 0 to Week 5) are from the sibling program, The AI-First Engineer, a Claude Code builder program for software engineers covering foundations, Claude Code fundamentals, context engineering, Skills, MCP, and orchestration with guardrails and evaluation. Session decks are available in English and 中文.
 
+Coding: The AI-First Leader needs no coding experience. The AI-First Engineer is for software engineers: its labs work in Python code repositories from the terminal (git, uv, pytest), although participants direct Claude Code to write much of the code rather than writing it all by hand.
+
 ## Instructor
 
 The course is taught by Bilal Farooq, a seasoned AI professional with over 20 years of experience in leading telco, banking, retail, and consulting organizations across Australia, New Zealand, Malaysia, UAE, USA, and Pakistan. He has a proven track record of building and nurturing high-performing data science teams, and serves as an advisor for Gen AI / Agentic AI for a San Francisco-based startup. He has designed data science programs for students from grade 6 to PhD levels and is experienced in teaching Data Science, Gen AI, and Agentic AI courses.
