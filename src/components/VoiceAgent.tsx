@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Mic, MicOff, Send, Volume2, VolumeX, ExternalLink } from 'lucide-react'
-import { MicListener, speak, type Lang } from '../lib/voice'
+import { MicListener, speak, playSegments, type Lang } from '../lib/voice'
 
 type Source = { title: string; section: string; url: string | null; program: string; lang: string }
-type Timings = { stt?: number; retrieval?: number; llm?: number; total?: number; server?: number }
+type Timings = { stt?: number; retrieval?: number; llm?: number; tts?: number; total?: number; server?: number }
 type Message = { id: number; role: 'user' | 'agent'; text: string; sources?: Source[]; policy?: string; lang?: Lang }
 type Status = 'idle' | 'starting' | 'listening' | 'hearing' | 'thinking' | 'speaking'
 
@@ -24,8 +24,10 @@ const STATUS_TEXT: Record<Status, Record<Lang, string>> = {
 let nextId = 1
 const now = () => performance.now()
 
-export default function VoiceAgent() {
+// compact: the smaller layout used in the home page's "Talk to AI" overlay.
+export default function VoiceAgent({ compact = false }: { compact?: boolean }) {
   const [status, setStatus] = useState<Status>('idle')
+  const [voiceLabel, setVoiceLabel] = useState('')
   const [lang, setLang] = useState<Lang>('en')
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
@@ -64,6 +66,7 @@ export default function VoiceAgent() {
       if (input.wav) form.append('audio', input.wav, 'turn.wav')
       if (input.text) form.append('text', input.text)
       form.append('state', JSON.stringify({ language: langRef.current, history: history.current.slice(-4) }))
+      if (speakReplies) form.append('speak', '1') // ask the server for natural-voice audio (English)
       const res = await fetch('/api/voice-agent', { method: 'POST', body: form })
       const data = await res.json()
       if (!res.ok || !data.ok) throw new Error(data.message || 'Something went wrong.')
@@ -80,10 +83,19 @@ export default function VoiceAgent() {
       if (speakReplies) {
         setStat('speaking')
         if (listener.current) { listener.current.paused = false; listener.current.setAgentSpeaking(true) }
-        cancelSpeech.current = speak(data.reply, turnLang, {
+        const callbacks = {
           onStart: () => setTimings((t) => ({ ...t, firstAudio: Math.round(now() - turnEnded) })),
           onEnd: () => { listener.current?.setAgentSpeaking(false); if (statusRef.current === 'speaking') resume() },
-        })
+        }
+        const browserVoice = () => {
+          setVoiceLabel(t('Browser voice', '浏览器语音'))
+          cancelSpeech.current = speak(data.reply, turnLang, callbacks)
+        }
+        if (data.audio?.segments?.length) {
+          // Natural voice from the server (Groq Orpheus); the browser voice steps in if playback fails.
+          setVoiceLabel(`Groq Orpheus · ${data.audio.voice}`)
+          cancelSpeech.current = playSegments(data.audio.segments, { ...callbacks, onError: browserVoice })
+        } else browserVoice()
       } else resume()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong.')
@@ -140,25 +152,31 @@ export default function VoiceAgent() {
   const t = (en: string, zh: string) => (lang === 'zh' ? zh : en)
 
   return (
-    <div className="liquid-glass rounded-3xl p-6 md:p-8 text-white">
-      <div className="flex flex-col md:flex-row md:items-center gap-6">
-        <button
-          onClick={live ? stopMic : startMic}
-          aria-label={live ? t('Stop the microphone', '关闭麦克风') : t('Start talking', '开始说话')}
-          className={`relative shrink-0 w-24 h-24 rounded-full flex items-center justify-center transition-colors ${live ? 'bg-white text-black' : 'liquid-glass hover:bg-white/5'}`}
-        >
-          {live && (
-            <span className="absolute inset-0 rounded-full border border-white/60" style={{ transform: `scale(${1 + level * 0.35})`, transition: 'transform 80ms linear' }} />
-          )}
-          {live ? <MicOff size={30} /> : <Mic size={30} />}
-        </button>
+    <div className={`${compact ? '' : 'liquid-glass rounded-3xl p-6 md:p-8'} text-white`}>
+      <div className={`flex ${compact ? 'flex-row items-center justify-between gap-3' : 'flex-col md:flex-row md:items-center gap-6'}`}>
+        {!compact && (
+          <button
+            onClick={live ? stopMic : startMic}
+            aria-label={live ? t('Stop the microphone', '关闭麦克风') : t('Start talking', '开始说话')}
+            className={`relative shrink-0 w-24 h-24 rounded-full flex items-center justify-center transition-colors ${live ? 'bg-white text-black' : 'liquid-glass hover:bg-white/5'}`}
+          >
+            {live && (
+              <span className="absolute inset-0 rounded-full border border-white/60" style={{ transform: `scale(${1 + level * 0.35})`, transition: 'transform 80ms linear' }} />
+            )}
+            {live ? <MicOff size={30} /> : <Mic size={30} />}
+          </button>
+        )}
         <div className="flex-1 min-w-0">
-          <p className="text-2xl md:text-3xl" style={{ fontFamily: "'Instrument Serif', serif" }}>{STATUS_TEXT[status][lang]}</p>
-          <p className="text-white/50 text-sm mt-1">
-            {t('Answers come from the course decks, lab guides and homepage, and are spoken in your browser\'s voice.', '回答来自课程讲义、实验指南和网站首页，并用浏览器语音朗读。')}
+          <p className={compact ? 'text-white/70 text-sm' : 'text-2xl md:text-3xl'} style={compact ? undefined : { fontFamily: "'Instrument Serif', serif" }}>
+            {compact && status === 'idle' ? t('Speak or type your question', '说出或输入你的问题') : STATUS_TEXT[status][lang]}
           </p>
+          {!compact && (
+            <p className="text-white/50 text-sm mt-1">
+              {t('Answers come from the course decks, lab guides and homepage. English replies use a natural AI voice; 中文 uses your browser\'s voice.', '回答来自课程讲义、实验指南和网站首页。英文回答使用自然的 AI 语音，中文回答使用浏览器语音。')}
+            </p>
+          )}
         </div>
-        <div className="flex items-center gap-2 self-start md:self-center">
+        <div className={`flex items-center gap-2 ${compact ? '' : 'self-start md:self-center'}`}>
           <div className="liquid-glass rounded-full p-1 flex text-sm" role="radiogroup" aria-label="Language">
             {(['en', 'zh'] as Lang[]).map((l) => (
               <button key={l} role="radio" aria-checked={lang === l} onClick={() => setLang(l)}
@@ -174,6 +192,28 @@ export default function VoiceAgent() {
         </div>
       </div>
 
+      {compact && (
+        <button
+          onClick={live ? stopMic : startMic}
+          className={`mt-4 w-full rounded-full py-3.5 flex items-center justify-center gap-2.5 font-medium transition-colors ${live ? 'border border-white/25 bg-white/10 hover:bg-white/15 text-white' : 'bg-white text-black hover:bg-white/90'}`}
+        >
+          {live ? (
+            <>
+              <span className="relative flex w-3 h-3" aria-hidden="true">
+                <span className="absolute inset-0 rounded-full bg-red-400" style={{ transform: `scale(${1 + level * 1.2})`, opacity: 0.45, transition: 'transform 80ms linear' }} />
+                <span className="relative w-3 h-3 rounded-full bg-red-400" />
+              </span>
+              {t('Stop talking', '停止说话')}
+            </>
+          ) : (
+            <>
+              <Mic size={18} />
+              {t('Click here to talk', '点击这里开始说话')}
+            </>
+          )}
+        </button>
+      )}
+
       {mode === 'mock' && (
         <p className="mt-5 text-amber-300/90 text-sm">
           Demo mode: no API key is configured, so voice input is off and answers quote the best-matching course excerpt.
@@ -181,10 +221,10 @@ export default function VoiceAgent() {
       )}
       {error && <p className="mt-5 text-red-300 text-sm" role="alert">{error}</p>}
 
-      <div ref={scroller} className="mt-6 max-h-[420px] overflow-y-auto space-y-4 pr-1" aria-live="polite">
+      <div ref={scroller} className={`${compact ? 'mt-4 max-h-[50vh]' : 'mt-6 max-h-[420px]'} overflow-y-auto space-y-4 pr-1`} aria-live="polite">
         {messages.length === 0 && (
           <div className="flex flex-wrap gap-2">
-            {SUGGESTIONS[lang].map((s) => (
+            {SUGGESTIONS[lang].slice(0, compact ? 3 : 4).map((s) => (
               <button key={s} onClick={() => submitText(s)} className="liquid-glass rounded-full px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/5">
                 {s}
               </button>
@@ -224,12 +264,13 @@ export default function VoiceAgent() {
         </button>
       </form>
 
+      {!compact && (
       <details className="mt-6 text-sm text-white/60">
         <summary className="cursor-pointer hover:text-white">{t('Under the hood', '技术细节')}</summary>
         <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             ['Speech-to-text', timings.stt], ['Retrieval', timings.retrieval], ['Language model', timings.llm],
-            ['Server total', timings.server], ['To first audio', timings.firstAudio],
+            ['Text-to-speech', timings.tts], ['Server total', timings.server], ['To first audio', timings.firstAudio],
           ].map(([label, v]) => (
             <div key={label as string} className="liquid-glass rounded-xl px-3 py-2">
               <div className="text-white/45 text-xs">{label}</div>
@@ -240,6 +281,10 @@ export default function VoiceAgent() {
             <div className="text-white/45 text-xs">Barge-ins</div>
             <div className="text-white text-lg">{bargeIns}</div>
           </div>
+          <div className="liquid-glass rounded-xl px-3 py-2">
+            <div className="text-white/45 text-xs">Voice</div>
+            <div className="text-white text-sm mt-1">{voiceLabel || '—'}</div>
+          </div>
         </div>
         <label className="mt-4 flex items-center gap-3">
           <span className="whitespace-nowrap">End-of-turn silence</span>
@@ -247,10 +292,12 @@ export default function VoiceAgent() {
           <span className="w-16 text-right">{endpointMs} ms</span>
         </label>
         <p className="mt-3 text-white/45">
-          Pipeline: your browser detects the end of your turn → Groq Whisper transcribes it → keyword search over {mode ? 'the' : ''} course
-          material → Groq gpt-oss-120b answers under guardrails (no prices, dates or invented facts) → your browser speaks the reply. {mode && `Mode: ${mode}.`}
+          Pipeline: your browser detects the end of your turn → Groq Whisper transcribes it → keyword search over the course
+          material → Groq gpt-oss-120b answers under guardrails (no prices, dates or invented facts) → Groq Orpheus speaks English
+          replies (your browser&apos;s voice speaks 中文, or steps in if Orpheus is unavailable). {mode && `Mode: ${mode}.`}
         </p>
       </details>
+      )}
     </div>
   )
 }

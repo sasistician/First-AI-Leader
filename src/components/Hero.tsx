@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { Mic } from 'lucide-react'
 
 const FADE_MS = 500
 const HERO_VIDEO_URL =
@@ -8,7 +9,7 @@ function scrollToSection(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
 
-export default function Hero() {
+export default function Hero({ onTalk }: { onTalk?: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const rafRef = useRef<number | null>(null)
   const fadingOutRef = useRef(false)
@@ -95,13 +96,23 @@ export default function Hero() {
           Built for the AI-first leader.
         </h1>
 
-        <div className="max-w-xl w-full space-y-4">
+        <div className="max-w-xl w-full flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={() => scrollToSection('program')}
             className="liquid-glass rounded-full px-8 py-3 text-white text-sm font-medium hover:bg-white/5 transition-colors"
           >
             See the program
           </button>
+          {onTalk && (
+            <button
+              onClick={onTalk}
+              aria-haspopup="dialog"
+              className="flex items-center gap-2 rounded-full pl-3 pr-6 py-2 bg-white text-black text-sm font-medium hover:bg-white/90 transition-colors"
+            >
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-black text-white"><Mic size={14} /></span>
+              Talk to AI
+            </button>
+          )}
         </div>
       </div>
     </div>

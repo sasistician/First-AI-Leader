@@ -1,14 +1,16 @@
 // POST /api/voice-agent — one conversational turn, the equivalent of Aurora's /voice-agent.
 //
-//   multipart/form-data: audio (16 kHz mono WAV from the browser) and/or text, plus state (JSON)
-//   application/json:    { text, state }
+//   multipart/form-data: audio (16 kHz mono WAV from the browser) and/or text, plus state (JSON), speak ('1')
+//   application/json:    { text, state, speak }
 //   state = { language: 'en'|'zh', history: [{ role, content }] }
 //
 // Pipeline: speech-to-text (Groq Whisper) → language route → guardrails → BM25 retrieval over
-// the course → LLM answer (Groq) → reply check. The browser speaks the reply.
+// the course → LLM answer (Groq) → reply check → speech (Groq Orpheus for English when
+// TTS_BACKEND=provider; otherwise the browser's voice speaks it).
 // GROQ_API_KEY lives in Vercel's environment variables; without it the endpoint runs in mock mode.
-import { getProvider, CHAT_MODEL, STT_MODEL } from './_lib/providers.js'
+import { getProvider, CHAT_MODEL, STT_MODEL, ttsConfig } from './_lib/providers.js'
 import { runTurn } from './_lib/agent.js'
+import { synthesize } from './_lib/tts.js'
 import { kbInfo } from './_lib/kb.js'
 import { take, clientId } from './_lib/ratelimit.js'
 
@@ -20,7 +22,9 @@ const json = (body, status = 200, headers = {}) =>
 
 export async function GET() {
   const provider = getProvider()
-  return json({ ok: true, mode: provider.name, chatModel: CHAT_MODEL, sttModel: STT_MODEL, kb: kbInfo() })
+  const tts = ttsConfig()
+  const voice = provider.name === 'groq' && tts.backend === 'provider' ? { backend: 'provider', model: tts.model, voice: tts.voice, languages: ['en'] } : { backend: 'system' }
+  return json({ ok: true, mode: provider.name, chatModel: CHAT_MODEL, sttModel: STT_MODEL, tts: voice, kb: kbInfo() })
 }
 
 export async function POST(request) {
@@ -33,6 +37,7 @@ export async function POST(request) {
   let text = ''
   let audio = null
   let state = {}
+  let wantSpeech = false
   try {
     const type = request.headers.get('content-type') || ''
     if (type.includes('multipart/form-data')) {
@@ -40,10 +45,12 @@ export async function POST(request) {
       text = String(form.get('text') || '')
       audio = form.get('audio')
       state = JSON.parse(String(form.get('state') || '{}'))
+      wantSpeech = form.get('speak') === '1'
     } else {
       const body = await request.json()
       text = String(body.text || '')
       state = body.state || {}
+      wantSpeech = body.speak === true || body.speak === '1'
     }
   } catch {
     return json({ ok: false, error: 'bad_request', message: 'Could not read the request.' }, 400)
@@ -71,13 +78,22 @@ export async function POST(request) {
       return json({ ok: true, mode: provider.name, transcript: '', reply: '', empty: true, timings })
     }
     const turn = await runTurn({ text: transcript, state, provider, sttLanguage })
-    const result = { ok: true, mode: provider.name, transcript, ...turn, timings: { ...timings, ...turn.timings, server: Date.now() - started } }
+    // Speech never fails the turn: without audio, the browser speaks the reply itself.
+    const speech = wantSpeech ? await synthesize(provider, turn.reply, turn.language) : { audio: null, detail: 'not_requested', ms: 0 }
+    if (speech.ms) timings.tts = speech.ms
+    const result = {
+      ok: true, mode: provider.name, transcript, ...turn,
+      audio: speech.audio, ttsDetail: speech.detail,
+      timings: { ...timings, ...turn.timings, server: Date.now() - started },
+    }
     // Structured telemetry without conversation content (Aurora's TELEMETRY_INCLUDE_CONTENT=false).
-    console.log(JSON.stringify({ event: 'voice_turn', mode: provider.name, policy: turn.policy, language: turn.language, routeChanged: turn.route.changed, sources: turn.sources.length, topScore: turn.topScore, timings: result.timings }))
+    console.log(JSON.stringify({ event: 'voice_turn', mode: provider.name, policy: turn.policy, language: turn.language, routeChanged: turn.route.changed, sources: turn.sources.length, topScore: turn.topScore, tts: speech.audio ? 'provider' : speech.detail, timings: result.timings }))
     return json(result)
   } catch (e) {
     console.error(JSON.stringify({ event: 'voice_turn_error', status: e.status, message: String(e.message).slice(0, 200) }))
     const busy = e.status === 429
-    return json({ ok: false, error: busy ? 'provider_busy' : 'provider_error', message: busy ? 'The voice guide is very busy right now. Please try again in a minute.' : 'Something went wrong answering that. Please try again.' }, busy ? 503 : 502)
+    // A failure category (never the key or the provider's message) so a misconfiguration can be diagnosed.
+    const detail = e.status === 401 || e.status === 403 ? 'auth' : busy ? 'rate_limit' : e.status === 400 || e.status === 404 ? 'request' : e.status ? `http_${e.status}` : 'network'
+    return json({ ok: false, error: busy ? 'provider_busy' : 'provider_error', detail, message: busy ? 'The voice guide is very busy right now. Please try again in a minute.' : 'Something went wrong answering that. Please try again.' }, busy ? 503 : 502)
   }
 }

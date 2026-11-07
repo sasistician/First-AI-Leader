@@ -181,6 +181,29 @@ export function pickVoice(lang: Lang): SpeechSynthesisVoice | null {
   return voices.sort((a, b) => score(b) - score(a))[0] || null
 }
 
+/**
+ * playSegments(base64 WAV segments, { onStart, onEnd, onError }) → cancel function.
+ * Plays the server's Groq Orpheus audio in order; onError lets the caller fall back to speak().
+ */
+export function playSegments(segments: string[], cb: { onStart?: () => void; onEnd?: () => void; onError?: () => void } = {}) {
+  let i = 0
+  let stopped = false
+  let current: HTMLAudioElement | null = null
+  const finish = () => { if (!stopped) { stopped = true; cb.onEnd?.() } }
+  const next = () => {
+    if (stopped) return
+    if (i >= segments.length) { finish(); return }
+    current = new Audio(`data:audio/wav;base64,${segments[i]}`)
+    const first = i === 0
+    i++
+    current.onended = next
+    current.onerror = () => { if (first && !stopped) { stopped = true; cb.onError?.() } else next() }
+    current.play().then(() => { if (first) cb.onStart?.() }).catch(() => { if (!stopped) { stopped = true; cb.onError?.() } })
+  }
+  next()
+  return () => { current?.pause(); finish() }
+}
+
 /** speak(text, lang, { onStart, onEnd }) → cancel function */
 export function speak(text: string, lang: Lang, cb: { onStart?: () => void; onEnd?: () => void } = {}) {
   if (!('speechSynthesis' in window) || !text) { cb.onEnd?.(); return () => {} }
