@@ -153,19 +153,23 @@ export default function VoiceAgent({ compact = false }: { compact?: boolean }) {
 
   return (
     <div className={`${compact ? '' : 'liquid-glass rounded-3xl p-6 md:p-8'} text-white`}>
-      <div className={`flex ${compact ? 'flex-row flex-wrap items-center gap-4' : 'flex-col md:flex-row md:items-center gap-6'}`}>
-        <button
-          onClick={live ? stopMic : startMic}
-          aria-label={live ? t('Stop the microphone', '关闭麦克风') : t('Start talking', '开始说话')}
-          className={`relative shrink-0 ${compact ? 'w-14 h-14' : 'w-24 h-24'} rounded-full flex items-center justify-center transition-colors ${live ? 'bg-white text-black' : 'liquid-glass hover:bg-white/5'}`}
-        >
-          {live && (
-            <span className="absolute inset-0 rounded-full border border-white/60" style={{ transform: `scale(${1 + level * 0.35})`, transition: 'transform 80ms linear' }} />
-          )}
-          {live ? <MicOff size={compact ? 22 : 30} /> : <Mic size={compact ? 22 : 30} />}
-        </button>
+      <div className={`flex ${compact ? 'flex-row items-center justify-between gap-3' : 'flex-col md:flex-row md:items-center gap-6'}`}>
+        {!compact && (
+          <button
+            onClick={live ? stopMic : startMic}
+            aria-label={live ? t('Stop the microphone', '关闭麦克风') : t('Start talking', '开始说话')}
+            className={`relative shrink-0 w-24 h-24 rounded-full flex items-center justify-center transition-colors ${live ? 'bg-white text-black' : 'liquid-glass hover:bg-white/5'}`}
+          >
+            {live && (
+              <span className="absolute inset-0 rounded-full border border-white/60" style={{ transform: `scale(${1 + level * 0.35})`, transition: 'transform 80ms linear' }} />
+            )}
+            {live ? <MicOff size={30} /> : <Mic size={30} />}
+          </button>
+        )}
         <div className="flex-1 min-w-0">
-          <p className={compact ? 'text-xl leading-tight' : 'text-2xl md:text-3xl'} style={{ fontFamily: "'Instrument Serif', serif" }}>{STATUS_TEXT[status][lang]}</p>
+          <p className={compact ? 'text-white/70 text-sm' : 'text-2xl md:text-3xl'} style={compact ? undefined : { fontFamily: "'Instrument Serif', serif" }}>
+            {compact && status === 'idle' ? t('Speak or type your question', '说出或输入你的问题') : STATUS_TEXT[status][lang]}
+          </p>
           {!compact && (
             <p className="text-white/50 text-sm mt-1">
               {t('Answers come from the course decks, lab guides and homepage. English replies use a natural AI voice; 中文 uses your browser\'s voice.', '回答来自课程讲义、实验指南和网站首页。英文回答使用自然的 AI 语音，中文回答使用浏览器语音。')}
@@ -187,6 +191,28 @@ export default function VoiceAgent({ compact = false }: { compact?: boolean }) {
           </button>
         </div>
       </div>
+
+      {compact && (
+        <button
+          onClick={live ? stopMic : startMic}
+          className={`mt-4 w-full rounded-full py-3.5 flex items-center justify-center gap-2.5 font-medium transition-colors ${live ? 'border border-white/25 bg-white/10 hover:bg-white/15 text-white' : 'bg-white text-black hover:bg-white/90'}`}
+        >
+          {live ? (
+            <>
+              <span className="relative flex w-3 h-3" aria-hidden="true">
+                <span className="absolute inset-0 rounded-full bg-red-400" style={{ transform: `scale(${1 + level * 1.2})`, opacity: 0.45, transition: 'transform 80ms linear' }} />
+                <span className="relative w-3 h-3 rounded-full bg-red-400" />
+              </span>
+              {t('Stop talking', '停止说话')}
+            </>
+          ) : (
+            <>
+              <Mic size={18} />
+              {t('Click here to talk', '点击这里开始说话')}
+            </>
+          )}
+        </button>
+      )}
 
       {mode === 'mock' && (
         <p className="mt-5 text-amber-300/90 text-sm">
