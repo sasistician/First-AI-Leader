@@ -119,9 +119,12 @@ reply with its own voice (free).
   Chinese replies, `TTS_BACKEND=system`, or any TTS failure (e.g. quota) fall back to the browser's voice;
   `ttsDetail` in the response says why. Groq's free tier allows only ~3,600 Orpheus tokens/day; the Developer
   tier is $22 per 1M characters (~$3.30 per 1,000 answers).
-- **Home page widget:** `src/components/AskAIWidget.tsx` adds a floating glass "Talk to AI" button (top right)
-  that opens `VoiceAgent` in `compact` mode. `/?talk=1` opens it directly. Closing it unmounts the agent,
-  which stops the mic.
+- **Home page "Talk to AI":** `src/components/TalkDrawer.tsx` is a right-hand side panel (dimmed, blurred backdrop;
+  Esc or clicking outside closes it; page scroll locked; focus moves in and back) that shows `VoiceAgent` in
+  `compact` mode, with a full-width "Click here to talk" button. Entry points: a "Talk to AI" button in `Nav.tsx`
+  (top right, next to Register), one in `Hero.tsx` (next to "See the program"), and `FloatingTalkButton`
+  (bottom right, shown only after the hero scrolls away). `Home.tsx` owns the open state; `/?talk=1` opens it
+  directly. Closing unmounts the agent, which stops the mic.
 
 ## Known placeholders to revisit
 

@@ -221,7 +221,7 @@ export default function VoiceAgent({ compact = false }: { compact?: boolean }) {
       )}
       {error && <p className="mt-5 text-red-300 text-sm" role="alert">{error}</p>}
 
-      <div ref={scroller} className={`${compact ? 'mt-4 max-h-[42vh]' : 'mt-6 max-h-[420px]'} overflow-y-auto space-y-4 pr-1`} aria-live="polite">
+      <div ref={scroller} className={`${compact ? 'mt-4 max-h-[50vh]' : 'mt-6 max-h-[420px]'} overflow-y-auto space-y-4 pr-1`} aria-live="polite">
         {messages.length === 0 && (
           <div className="flex flex-wrap gap-2">
             {SUGGESTIONS[lang].slice(0, compact ? 3 : 4).map((s) => (
