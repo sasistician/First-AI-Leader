@@ -6,10 +6,10 @@ import { route } from '../api/_lib/router.js'
 import fs from 'node:fs'
 import { classify, checkReply, reply, SCHEDULE } from '../api/_lib/policy.js'
 import { search, pinnedFacts } from '../api/_lib/kb.js'
-import { runTurn } from '../api/_lib/agent.js'
-import { getProvider, cleanKey } from '../api/_lib/providers.js'
+import { runTurn, resetAnswerCache } from '../api/_lib/agent.js'
+import { getProvider, cleanKey, resetChatCooldowns } from '../api/_lib/providers.js'
 import { take, resetLimits } from '../api/_lib/ratelimit.js'
-import { splitForTts, synthesize } from '../api/_lib/tts.js'
+import { splitForTts, synthesize, resetSpeechCache } from '../api/_lib/tts.js'
 
 const mock = getProvider({ PROVIDER: 'mock' })
 
@@ -123,6 +123,7 @@ test('agent turn: pricing skips the model; course questions return sources', asy
 })
 
 test('agent turn: an unsafe model reply is replaced', async () => {
+  resetAnswerCache() // an earlier test answered the same question
   const leaky = { name: 'leaky', chat: async () => 'The course costs $1,200 and starts March 3.' }
   const r = await runTurn({ text: 'What do we cover in week 4?', state: {}, provider: leaky })
   assert.equal(r.policy, 'blocked_reply')
@@ -200,4 +201,71 @@ test('HTTP handler: JSON turn in mock mode, status endpoint, voice needs live mo
   const voice = await POST(new Request('http://x/api/voice-agent', { method: 'POST', body: form, headers: { 'x-forwarded-for': '9.9.9.8' } }))
   assert.equal(voice.status, 400)
   resetLimits()
+})
+
+// A fake Groq endpoint: per-model status codes, recording which models were asked.
+function fakeGroq(statusFor) {
+  const asked = []
+  const fetch = async (url, init) => {
+    const { model } = JSON.parse(init.body)
+    asked.push(model)
+    const status = statusFor(model)
+    if (status !== 200) return new Response('{"error":"busy"}', { status, headers: { 'retry-after': '5' } })
+    return Response.json({ choices: [{ message: { content: `<think>x</think>Answer from ${model}` } }] })
+  }
+  return { asked, fetch }
+}
+
+test('chat: a busy model hands over to the next one, and stays skipped while it cools down', async (t) => {
+  resetChatCooldowns()
+  const groq = getProvider({ GROQ_API_KEY: 'test-key' })
+  const fake = fakeGroq((m) => (m === 'openai/gpt-oss-120b' ? 429 : 200))
+  t.mock.method(globalThis, 'fetch', fake.fetch)
+  assert.equal(await groq.chat([{ role: 'user', content: 'hi' }]), 'Answer from openai/gpt-oss-20b', 'think tags are stripped')
+  assert.equal(groq.lastChatModel, 'openai/gpt-oss-20b')
+  assert.deepEqual(fake.asked, ['openai/gpt-oss-120b', 'openai/gpt-oss-20b'])
+  await groq.chat([{ role: 'user', content: 'again' }])
+  assert.equal(fake.asked[2], 'openai/gpt-oss-20b', 'the cooling model is not asked again straight away')
+  resetChatCooldowns()
+})
+
+test('chat: when every model is busy the turn reports busy; a bad key is not retried on other models', async (t) => {
+  resetChatCooldowns()
+  const groq = getProvider({ GROQ_API_KEY: 'test-key' })
+  const busy = fakeGroq(() => 429)
+  t.mock.method(globalThis, 'fetch', busy.fetch)
+  await assert.rejects(groq.chat([{ role: 'user', content: 'hi' }]), (e) => e.status === 429)
+  assert.ok(busy.asked.length >= 3, 'all three models were tried')
+  resetChatCooldowns()
+  const denied = fakeGroq(() => 401)
+  t.mock.method(globalThis, 'fetch', denied.fetch)
+  await assert.rejects(groq.chat([{ role: 'user', content: 'hi' }]), (e) => e.status === 401)
+  assert.equal(denied.asked.length, 1)
+  resetChatCooldowns()
+})
+
+test('answer cache: a repeated first question skips the model; follow-ups with history do not', async () => {
+  resetAnswerCache()
+  let calls = 0
+  const counting = { name: 'counting', chat: async (m) => { calls++; return mock.chat(m) } }
+  const first = await runTurn({ text: 'What do we cover in week 4?', state: { language: 'en' }, provider: counting })
+  const again = await runTurn({ text: 'what do we cover in week 4', state: { language: 'en' }, provider: counting })
+  assert.equal(calls, 1)
+  assert.equal(again.cached, true)
+  assert.equal(again.reply, first.reply)
+  assert.deepEqual(again.sources, first.sources)
+  await runTurn({ text: 'What do we cover in week 4?', state: { language: 'en', history: [{ role: 'user', content: 'hi' }] }, provider: counting })
+  assert.equal(calls, 2, 'with history the answer may depend on context, so the model is asked')
+  resetAnswerCache()
+})
+
+test('speech cache: the same sentence is synthesized once', async () => {
+  resetSpeechCache()
+  let calls = 0
+  const voiced = { name: 'groq', speak: async () => { calls++; return Buffer.from('RIFFfake') } }
+  await synthesize(voiced, 'The workshop is free.', 'en', {})
+  const again = await synthesize(voiced, 'The workshop is free.', 'en', {})
+  assert.equal(calls, 1)
+  assert.equal(Buffer.from(again.audio.segments[0], 'base64').toString(), 'RIFFfake')
+  resetSpeechCache()
 })

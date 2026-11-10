@@ -8,7 +8,7 @@
 // the course → LLM answer (Groq) → reply check → speech (Groq Orpheus for English when
 // TTS_BACKEND=provider; otherwise the browser's voice speaks it).
 // GROQ_API_KEY lives in Vercel's environment variables; without it the endpoint runs in mock mode.
-import { getProvider, CHAT_MODEL, STT_MODEL, ttsConfig } from './_lib/providers.js'
+import { getProvider, CHAT_MODEL, CHAT_FALLBACKS, STT_MODEL, ttsConfig } from './_lib/providers.js'
 import { runTurn } from './_lib/agent.js'
 import { synthesize } from './_lib/tts.js'
 import { kbInfo } from './_lib/kb.js'
@@ -24,7 +24,7 @@ export async function GET() {
   const provider = getProvider()
   const tts = ttsConfig()
   const voice = provider.name === 'groq' && tts.backend === 'provider' ? { backend: 'provider', model: tts.model, voice: tts.voice, languages: ['en'] } : { backend: 'system' }
-  return json({ ok: true, mode: provider.name, chatModel: CHAT_MODEL, sttModel: STT_MODEL, tts: voice, kb: kbInfo() })
+  return json({ ok: true, mode: provider.name, chatModel: CHAT_MODEL, chatFallbacks: CHAT_FALLBACKS, sttModel: STT_MODEL, tts: voice, kb: kbInfo() })
 }
 
 export async function POST(request) {
@@ -87,7 +87,7 @@ export async function POST(request) {
       timings: { ...timings, ...turn.timings, server: Date.now() - started },
     }
     // Structured telemetry without conversation content (Aurora's TELEMETRY_INCLUDE_CONTENT=false).
-    console.log(JSON.stringify({ event: 'voice_turn', mode: provider.name, policy: turn.policy, language: turn.language, routeChanged: turn.route.changed, sources: turn.sources.length, topScore: turn.topScore, tts: speech.audio ? 'provider' : speech.detail, timings: result.timings }))
+    console.log(JSON.stringify({ event: 'voice_turn', mode: provider.name, policy: turn.policy, model: turn.model, cached: !!turn.cached, language: turn.language, routeChanged: turn.route.changed, sources: turn.sources.length, topScore: turn.topScore, tts: speech.audio ? 'provider' : speech.detail, timings: result.timings }))
     return json(result)
   } catch (e) {
     console.error(JSON.stringify({ event: 'voice_turn_error', status: e.status, message: String(e.message).slice(0, 200) }))
