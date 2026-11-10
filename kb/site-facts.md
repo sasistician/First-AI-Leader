@@ -10,7 +10,7 @@ A small online cohort for senior & mid-level leaders. Built for the AI-first lea
 
 ## Free workshop: how to build a bilingual voice agent
 
-A free, live, two-hour online workshop: see how the voice guide on this site is built, from the browser to the reply, using real bugs and decisions from the project. Open to anyone; no coding needed to follow along. It runs on Saturday 21 November 2026, 10:00 to 12:00 Malaysia time (GMT+8). Register at sasistician.com to get the joining link.
+A free, live, two-hour online workshop: see how the voice guide on this site is built, from the browser to the reply, using real bugs and decisions from the project. Open to anyone; no coding needed to follow along. It runs on Saturday 21 November 2026, 10:00 to 12:00 Melbourne time (AEDT, GMT+11). Register at sasistician.com to get the joining link.
 
 What the workshop covers:
 - Anatomy of one voice turn: turn detection, barge-in, and why there's no streaming server.

@@ -5,7 +5,7 @@
 // The only dates the voice guide states. Keep in step with the homepage (src/lib/schedule.ts)
 // and kb/site-facts*.md; tests check that all three agree.
 export const SCHEDULE = {
-  workshop: { en: 'Saturday 21 November 2026, 10am to noon Malaysia time', zh: '2026年11月21日（星期六）马来西亚时间上午10点至12点' },
+  workshop: { en: 'Saturday 21 November 2026, 10am to noon Melbourne time', zh: '2026年11月21日（星期六）墨尔本时间上午10点至12点' },
   cohort: { en: '15 January 2027', zh: '2027年1月15日' },
 }
 
