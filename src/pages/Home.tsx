@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import Nav from '../components/Nav'
 import Hero from '../components/Hero'
+import UpcomingSection from '../components/UpcomingSection'
 import ProgramSection from '../components/ProgramSection'
 import WeeksSection from '../components/WeeksSection'
 import AboutSection from '../components/AboutSection'
@@ -20,6 +21,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       <Nav onTalk={openTalk} />
       <Hero onTalk={openTalk} />
+      <UpcomingSection />
       <ProgramSection />
       <WeeksSection />
       <AboutSection />

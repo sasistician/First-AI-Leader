@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { Mic } from 'lucide-react'
+import { ArrowRight, Mic } from 'lucide-react'
+import { WORKSHOP } from '../lib/schedule'
 
 const FADE_MS = 500
 const HERO_VIDEO_URL =
@@ -89,6 +90,14 @@ export default function Hero({ onTalk }: { onTalk?: () => void }) {
       />
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-12 text-center -translate-y-[20%]">
+        <button
+          onClick={() => scrollToSection('upcoming')}
+          className="liquid-glass rounded-full pl-4 pr-3 py-1.5 mb-6 flex items-center gap-2 text-white/90 text-xs sm:text-sm hover:bg-white/5 transition-colors"
+        >
+          <span className="text-white/60">Free workshop · {WORKSHOP.shortDate}</span>
+          <span className="hidden sm:inline">How to build a bilingual voice agent</span>
+          <ArrowRight size={14} />
+        </button>
         <h1
           className="text-5xl md:text-6xl lg:text-7xl text-white mb-8 tracking-tight whitespace-nowrap"
           style={{ fontFamily: "'Instrument Serif', serif" }}

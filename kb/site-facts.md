@@ -1,12 +1,29 @@
 # The AI-First Leader: homepage facts
 
-Copied verbatim from the sasistician.com homepage (the same facts the personalized ad is checked against). The site lists no price and no dates.
+Copied verbatim from the sasistician.com homepage (the same facts the personalized ad is checked against). The site lists no price.
 
 ## About the course
 
 The AI-First Leader is a five-week live cohort built on Claude Code. No prior coding experience required. Each session stacks on the last, so by the end you'll have shipped a real agent, grounded it in your own knowledge, and built an AI roadmap for your organisation.
 
 A small online cohort for senior & mid-level leaders. Built for the AI-first leader.
+
+## Free workshop: how to build a bilingual voice agent
+
+A free, live, two-hour online workshop: see how the voice guide on this site is built, from the browser to the reply, using real bugs and decisions from the project. Open to anyone; no coding needed to follow along. It runs on Saturday 21 November 2026, 10:00 to 12:00 Malaysia time (GMT+8). Register at sasistician.com to get the joining link.
+
+What the workshop covers:
+- Anatomy of one voice turn: turn detection, barge-in, and why there's no streaming server.
+- Speech in, speech out: Whisper with a vocabulary prompt, the Orpheus voice, and the 200-character split.
+- One agent, two languages: session language routing and the "Is it taught in Mandarin?" bug.
+- RAG without a vector database: tuning BM25 search, with bilingual query expansion.
+- Guardrails in code: what the model must never say, and how code enforces it.
+- Evals: turning every production bug into a test.
+- Live Q&A.
+
+## Next cohort
+
+The next cohort of The AI-First Leader starts on 15 January 2027: five weeks, live online. Register at sasistician.com.
 
 ## Why take this course
 

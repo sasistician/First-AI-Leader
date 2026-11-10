@@ -25,12 +25,18 @@
     { "user": "Hello", "expect": { "policy": "greeting" } } ] },
   { "id": "policy.pricing", "description": "Pricing never reaches the model.", "turns": [
     { "user": "How much does the course cost?", "expect": { "policy": "pricing", "contains": "doesn't list pricing" } } ] },
-  { "id": "policy.dates_zh", "description": "Date questions in Chinese get the Chinese canned reply.", "turns": [
-    { "user": "下一期什么时候开课？", "expect": { "policy": "pricing", "language": "zh", "contains": "没有公布" } } ] },
+  { "id": "policy.dates_zh", "description": "Date questions in Chinese get the dates from code, in Chinese.", "turns": [
+    { "user": "下一期什么时候开课？", "expect": { "policy": "dates", "language": "zh", "contains": "2027年1月15日" } } ] },
   { "id": "rag.system_prompt_topic", "description": "System prompts are a course topic; asking how to write one is not an injection.", "turns": [
     { "user": "How do I write a good system prompt for Claude Code?", "expect": { "policy": "answered" } } ] },
   { "id": "rag.prompt_engineering_zh", "description": "提示词 (prompt) is a course term; a Chinese question about it is answered.", "turns": [
     { "user": "什么是提示词工程？", "expect": { "policy": "answered", "language": "zh" } } ] },
   { "id": "policy.running_cost_not_price", "description": "The cost of running an agent is not a question about the course price.", "turns": [
-    { "user": "How much does it cost to run an AI agent?", "expect": { "forbid": ["doesn't list pricing"] } } ] }
+    { "user": "How much does it cost to run an AI agent?", "expect": { "forbid": ["doesn't list pricing"] } } ] },
+  { "id": "dates.workshop", "description": "Workshop dates come from code, not the model.", "turns": [
+    { "user": "When is the free workshop?", "expect": { "policy": "dates", "contains": "21 November 2026" } } ] },
+  { "id": "dates.cohort", "description": "The next cohort date comes from code.", "turns": [
+    { "user": "When does the next cohort start?", "expect": { "policy": "dates", "contains": "15 January 2027" } } ] },
+  { "id": "rag.workshop_topics", "description": "Questions about the workshop's content retrieve the workshop section.", "turns": [
+    { "user": "What will the voice agent workshop cover?", "expect": { "policy": "answered", "sourceSection": "Free workshop" } } ] }
 ]
