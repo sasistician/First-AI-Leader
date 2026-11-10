@@ -12,9 +12,9 @@ const SUBJECTS: Record<Interest, string> = {
 }
 
 const THANKS: Record<Interest, string> = {
-  workshop: `Thanks, your seat is reserved. We'll email the joining link before ${WORKSHOP.date}.`,
+  workshop: `Thanks, your seat is reserved. You'll get a Google Calendar invite with the Google Meet link before ${WORKSHOP.date}.`,
   cohort: `Thanks, we'll be in touch about the cohort starting ${COHORT.date}.`,
-  both: `Thanks, your workshop seat is reserved and we'll be in touch about the cohort starting ${COHORT.date}.`,
+  both: `Thanks, your workshop seat is reserved: a Google Calendar invite with the Meet link is on its way. We'll also be in touch about the cohort starting ${COHORT.date}.`,
 }
 
 export default function Register() {

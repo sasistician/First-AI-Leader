@@ -6,7 +6,7 @@ export const WORKSHOP = {
   date: 'Saturday 21 November 2026',
   shortDate: 'Sat 21 Nov',
   time: '10:00–12:00 Melbourne time (AEDT, GMT+11)',
-  format: 'Free · Live online · 2 hours',
+  format: 'Free · Live on Google Meet · 2 hours',
   blurb:
     'See how the voice guide on this site is built, from the browser to the reply, using real bugs and decisions from the project. Open to anyone; no coding needed to follow along.',
   topics: [
