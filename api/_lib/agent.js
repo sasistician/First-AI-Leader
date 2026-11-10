@@ -37,6 +37,16 @@ function contextBlock(results) {
 
 const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())
 
+// Visitors arriving together ask the same opening questions. A first question (no history) that was
+// answered recently on this warm instance reuses that answer: no model call, no tokens.
+const ANSWER_TTL_MS = 30 * 60 * 1000
+const ANSWER_CACHE_MAX = 300
+const answers = new Map()
+const answerKey = (text, lang) => `${lang}|${text.toLowerCase().replace(/[\s?!.,。？！，]+/g, ' ').trim()}`
+export function resetAnswerCache() {
+  answers.clear()
+}
+
 /**
  * runTurn({ text, state, provider, sttLanguage }) → turn result.
  * state = { language: 'en'|'zh', history: [{ role: 'user'|'assistant', content }] }
@@ -63,6 +73,14 @@ export async function runTurn({ text, state = {}, provider, sttLanguage }) {
     return { ...base, reply: reply('offtopic', lang), policy: 'offtopic', topScore: results[0]?.score ?? 0 }
   }
 
+  const fresh = !(state.history || []).length
+  const key = answerKey(text, lang)
+  const hit = fresh && answers.get(key)
+  if (hit && Date.now() - hit.at < ANSWER_TTL_MS) {
+    timings.total = Math.round(now() - t0)
+    return { ...base, reply: hit.reply, policy: 'answered', sources: hit.sources, topScore: hit.topScore, model: hit.model, cached: true }
+  }
+
   const history = (state.history || []).slice(-4).map((h) => ({
     role: h.role === 'assistant' ? 'assistant' : 'user',
     content: String(h.content || '').slice(0, 300),
@@ -84,7 +102,13 @@ export async function runTurn({ text, state = {}, provider, sttLanguage }) {
     policy = 'blocked_reply'
   }
   timings.total = Math.round(now() - t0)
-  return { ...base, reply: answer, policy, sources, topScore: results[0].score }
+  const model = provider.lastChatModel || null
+  if (fresh && policy === 'answered') {
+    answers.delete(key)
+    answers.set(key, { reply: answer, sources, topScore: results[0].score, model, at: Date.now() })
+    if (answers.size > ANSWER_CACHE_MAX) answers.delete(answers.keys().next().value)
+  }
+  return { ...base, reply: answer, policy, sources, topScore: results[0].score, model }
 }
 
 function dedupeSources(results) {

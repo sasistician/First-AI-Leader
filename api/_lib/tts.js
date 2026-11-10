@@ -5,6 +5,30 @@ import { ttsConfig } from './providers.js'
 
 export const ORPHEUS_MAX_CHARS = 200
 
+// Orpheus has the smallest free quota (about 100 requests a day), and cached answers repeat the same
+// sentences, so synthesized segments are kept per warm instance, up to ~30 MB, oldest dropped first.
+const SPEECH_CACHE_BYTES = 30 * 1024 * 1024
+const speech = new Map()
+let speechBytes = 0
+export function resetSpeechCache() {
+  speech.clear()
+  speechBytes = 0
+}
+async function speakCached(provider, text, cfg) {
+  const key = `${cfg.model}|${cfg.voice}|${text}`
+  const hit = speech.get(key)
+  if (hit) return hit
+  const b64 = Buffer.from(await provider.speak(text, cfg)).toString('base64')
+  speech.set(key, b64)
+  speechBytes += b64.length
+  while (speechBytes > SPEECH_CACHE_BYTES && speech.size > 1) {
+    const [oldest, value] = speech.entries().next().value
+    speech.delete(oldest)
+    speechBytes -= value.length
+  }
+  return b64
+}
+
 // Orpheus takes at most 200 characters per request: split on sentences, then clauses, then words.
 export function splitForTts(text, max = ORPHEUS_MAX_CHARS) {
   const pieces = []
@@ -44,9 +68,9 @@ export async function synthesize(provider, text, language, env = process.env) {
   if (typeof provider.speak !== 'function' || !text) return { audio: null, detail: 'unsupported', ms: 0 }
   try {
     const chunks = splitForTts(text).slice(0, 4) // spoken replies are short; cap the cost of any one turn
-    const buffers = await Promise.all(chunks.map((c) => provider.speak(c, cfg)))
+    const segments = await Promise.all(chunks.map((c) => speakCached(provider, c, cfg)))
     return {
-      audio: { format: 'wav', voice: cfg.voice, segments: buffers.map((b) => Buffer.from(b).toString('base64')) },
+      audio: { format: 'wav', voice: cfg.voice, segments },
       detail: null,
       ms: Date.now() - started,
     }
