@@ -1,10 +1,26 @@
 import { useState } from 'react'
 import { Globe, ArrowLeft } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
+import { COHORT, INTERESTS, WORKSHOP, type Interest } from '../lib/schedule'
 
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mwvjabzb'
 
+const SUBJECTS: Record<Interest, string> = {
+  workshop: 'Workshop registration',
+  cohort: 'January cohort registration',
+  both: 'Workshop + January cohort registration',
+}
+
+const THANKS: Record<Interest, string> = {
+  workshop: `Thanks, your seat is reserved. You'll get a Google Calendar invite with the Google Meet link before ${WORKSHOP.date}.`,
+  cohort: `Thanks, we'll be in touch about the cohort starting ${COHORT.date}.`,
+  both: `Thanks, your workshop seat is reserved: a Google Calendar invite with the Meet link is on its way. We'll also be in touch about the cohort starting ${COHORT.date}.`,
+}
+
 export default function Register() {
+  const [params] = useSearchParams()
+  const preset = params.get('for')
+  const [interest, setInterest] = useState<Interest>(preset === 'cohort' || preset === 'both' ? preset : 'workshop')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
@@ -68,13 +84,13 @@ export default function Register() {
           className="text-4xl md:text-5xl text-white mb-8 tracking-tight"
           style={{ fontFamily: "'Instrument Serif', serif" }}
         >
-          Register your interest
+          Register
         </h1>
 
         {submitted ? (
           <div className="liquid-glass rounded-2xl px-8 py-10 max-w-md w-full">
             <p className="text-white text-lg">
-              Thanks — we'll be in touch about the next cohort.
+              {THANKS[interest]}
             </p>
           </div>
         ) : (
@@ -82,6 +98,26 @@ export default function Register() {
             onSubmit={handleSubmit}
             className="liquid-glass rounded-2xl px-8 py-8 max-w-md w-full text-left space-y-4"
           >
+            <fieldset>
+              <legend className="block text-white/70 text-sm mb-2">I'm registering for</legend>
+              <div className="space-y-2">
+                {INTERESTS.map((option) => (
+                  <label key={option.value} className="flex items-center gap-3 text-white text-sm cursor-pointer">
+                    <input
+                      type="radio"
+                      name="interest"
+                      value={option.value}
+                      checked={interest === option.value}
+                      onChange={() => setInterest(option.value)}
+                      className="accent-white"
+                    />
+                    {option.label}
+                  </label>
+                ))}
+              </div>
+              <input type="hidden" name="_subject" value={SUBJECTS[interest]} />
+            </fieldset>
+
             <div>
               <label className="block text-white/70 text-sm mb-1" htmlFor="name">
                 Name

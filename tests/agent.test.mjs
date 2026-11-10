@@ -3,7 +3,8 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { tokenize, weekMentions, programMention, looksChinese } from '../api/_lib/text.js'
 import { route } from '../api/_lib/router.js'
-import { classify, checkReply } from '../api/_lib/policy.js'
+import fs from 'node:fs'
+import { classify, checkReply, reply, SCHEDULE } from '../api/_lib/policy.js'
 import { search, pinnedFacts } from '../api/_lib/kb.js'
 import { runTurn } from '../api/_lib/agent.js'
 import { getProvider, cleanKey } from '../api/_lib/providers.js'
@@ -48,8 +49,11 @@ test('language routing persists and only switches on substance or request', () =
 })
 
 test('pricing and date questions are caught; course questions about cost or "how much" are not', () => {
-  for (const q of ['How much does the course cost?', 'What are the fees?', '学费多少钱？', 'When does the next cohort start?', '什么时候开课？']) {
+  for (const q of ['How much does the course cost?', 'What are the fees?', '学费多少钱？']) {
     assert.equal(classify(q), 'pricing', q)
+  }
+  for (const q of ['When does the next cohort start?', '什么时候开课？', 'When is the workshop?', 'What time does the workshop start?', '工作坊什么时候？']) {
+    assert.equal(classify(q), 'dates', q)
   }
   for (const q of ['How much context can Claude hold?', 'Does MCP reduce token cost?', 'What is in week 2?']) {
     assert.equal(classify(q), null, q)
@@ -68,7 +72,24 @@ test('replies with prices, years or guarantees are blocked', () => {
   assert.equal(checkReply('The next cohort starts in 2027.'), false)
   assert.equal(checkReply('Results are guaranteed.'), false)
   assert.equal(checkReply('学费是 3000 元。'), false)
+  assert.equal(checkReply('The workshop is on 21 November.'), false, 'day-first dates are blocked too')
+  assert.equal(checkReply('工作坊在11月21日。'), false)
   assert.equal(checkReply('Week 4 covers MCP and connecting Claude to your tools.'), true)
+})
+
+test('dates come from one schedule, and the site, replies and knowledge base agree', () => {
+  assert.match(reply('dates', 'en'), /21 November 2026/)
+  assert.match(reply('dates', 'en'), /15 January 2027/)
+  assert.match(reply('dates', 'zh'), /2027年1月15日/)
+  const site = fs.readFileSync(new URL('../src/lib/schedule.ts', import.meta.url), 'utf8')
+  const kbEn = fs.readFileSync(new URL('../kb/site-facts.md', import.meta.url), 'utf8')
+  const kbZh = fs.readFileSync(new URL('../kb/site-facts.zh.md', import.meta.url), 'utf8')
+  for (const text of [site, kbEn]) {
+    assert.match(text, /21 November 2026/)
+    assert.match(text, /15 January 2027/)
+  }
+  assert.ok(kbZh.includes('2026年11月21日') && kbZh.includes('2027年1月15日'))
+  assert.ok(SCHEDULE.workshop.en.startsWith('Saturday 21 November 2026'))
 })
 
 test('retrieval: named weeks, programs and languages', () => {
