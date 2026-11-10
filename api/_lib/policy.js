@@ -2,7 +2,11 @@
 // Rules the model can't talk its way around: no invented prices or dates, no prompt
 // injection, course topics only.
 
-const INJECTION = /ignore (all |any |the )?(previous|prior|above|earlier) (instructions|rules|prompts?)|system prompt|developer (message|prompt)|reveal (your|the) (instructions|prompt)|you are now|jailbreak|pretend (to be|you are)|act as (an? )?(unrestricted|different)|忽略(之前|以上|前面)?的?(所有)?(指令|指示|规则)|系统提示|提示词/i
+// System prompts and 提示词 are course topics, so only asking for *this agent's* prompt, or trying to
+// override it, counts. "What is a system prompt?" and "什么是提示词工程？" are course questions.
+const INJECTION = /ignore (all |any |the )?(previous|prior|above|earlier) (instructions|rules|prompts?)|\b(your|this agent's|the hidden) (system prompt|instructions|developer (message|prompt))|\b(reveal|print|show|repeat|output|dump|leak) (me )?(the |your )?(system prompt|instructions|developer (message|prompt))|you are now|jailbreak|pretend (to be|you are)|act as (an? )?(unrestricted|different)|忽略(之前|以上|前面)?的?(所有)?(指令|指示|规则)|你的(系统提示|提示词|指令)|(告诉我|显示|输出|打印|透露|泄露|重复)(一下)?(你的)?(系统提示|提示词)/i
+// "How much does it cost to run an agent?" is about running costs, a course topic, not the course price.
+const RUNNING_COST = /\bcosts?\s+to\s+(run|build|host|call|use|deploy)\b|\b(token|api|inference|running|compute|model)\s+costs?\b/i
 // Only questions about what the course costs. "How much context…" or "token cost" are course content.
 const PRICING = /\b(price|prices|pricing|tuition|fees?|discount|refund|payment)\b|\bhow much (is|does|will|would) (it|this|that|the (course|program|cohort|class))\b|\bhow much\b.{0,25}\b(costs?|charge|pay)\b|\b(course|program|cohort|class|it)\s+costs?\b|\bcosts? of (the |this )?(course|program|cohort|class)\b|价格|多少钱|费用|学费|优惠|折扣|退款|付款/i
 const DATES = /\b(start date|when (does|will|is) (it|the (course|cohort|program)|the next)|next cohort|enrol(l)?ment (deadline|date)|deadline|what date|which date|upcoming cohort)\b|什么时候(开始|开课|上课)|开课(时间|日期)|下一期|截止/i
@@ -44,7 +48,7 @@ export function reply(kind, lang) {
 export function classify(text) {
   const t = (text || '').trim()
   if (INJECTION.test(t)) return 'injection'
-  if (PRICING.test(t) || DATES.test(t)) return 'pricing'
+  if ((PRICING.test(t) && !RUNNING_COST.test(t)) || DATES.test(t)) return 'pricing'
   if (GREETING.test(t)) return 'greeting'
   if (THANKS.test(t)) return 'thanks'
   return null

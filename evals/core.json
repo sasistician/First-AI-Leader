@@ -24,5 +24,11 @@
   { "id": "policy.pricing", "description": "Pricing never reaches the model.", "turns": [
     { "user": "How much does the course cost?", "expect": { "policy": "pricing", "contains": "doesn't list pricing" } } ] },
   { "id": "policy.dates_zh", "description": "Date questions in Chinese get the Chinese canned reply.", "turns": [
-    { "user": "下一期什么时候开课？", "expect": { "policy": "pricing", "language": "zh", "contains": "没有公布" } } ] }
+    { "user": "下一期什么时候开课？", "expect": { "policy": "pricing", "language": "zh", "contains": "没有公布" } } ] },
+  { "id": "rag.system_prompt_topic", "description": "System prompts are a course topic; asking how to write one is not an injection.", "turns": [
+    { "user": "How do I write a good system prompt for Claude Code?", "expect": { "policy": "answered" } } ] },
+  { "id": "rag.prompt_engineering_zh", "description": "提示词 (prompt) is a course term; a Chinese question about it is answered.", "turns": [
+    { "user": "什么是提示词工程？", "expect": { "policy": "answered", "language": "zh" } } ] },
+  { "id": "policy.running_cost_not_price", "description": "The cost of running an agent is not a question about the course price.", "turns": [
+    { "user": "How much does it cost to run an AI agent?", "expect": { "forbid": ["doesn't list pricing"] } } ] }
 ]
